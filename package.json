@@ -1,0 +1,23 @@
+{
+  "name": "membership-auth-download-server",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/y0useff/membership-auth-download-server.git"
+  },
+  "author": "y0useff",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/y0useff/membership-auth-download-server/issues"
+  },
+  "homepage": "https://github.com/y0useff/membership-auth-download-server#readme",
+  "dependencies": {
+    "@playwright/test": "^1.45.1",
+    "playwright": "^1.45.1"
+  }
+}
