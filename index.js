@@ -5,14 +5,7 @@ const port = 3000
 const { test, expect } = require('@playwright/test');
 const playwright = require('playwright');
 const fs = require('fs')
-const wait = ms => new Promise(resolve => setTimeout(resolve, ms));
-const m3u8ToMp4 = require('m3u8-to-mp4')
-const converter = new m3u8ToMp4();
-app.engine('pug', require('pug').__express)
-app.set('views', path.join(__dirname, 'views'));
 
-
-app.set('view engine', 'pug')
 
 let browser;
 
@@ -44,7 +37,7 @@ app.get('/download', (req, res) => {
     (() => {
         try {
             this.browser.newPage()   
-                .then((page) => {
+                .then(async (page) => {
                     console.log("new page created")
                     let downloaded = false
                     // page.on('response', response => {
@@ -75,9 +68,18 @@ app.get('/download', (req, res) => {
                             // return res.send(request.url())
                         }
                     });
-                    const {url, season, episode} = req.query
-                    const full_url = `${url}&season=${season}&episode=${episode}`
-                    
+                    const {url, season, episode} = req.query;
+                    request(url, {resolveWithFullResponse: true})
+                        .then((body) => {
+                            if (body.statusCode != 200) return res.send("Invalid movie! doesnt exist in database")
+                        })
+                        .catch((err) => {
+                            return res.send("Invalid movie! doesnt exist in database")
+                        })
+                
+                    let full_url;
+                    if (url.split("/movie?").length == 1) full_url = `${url}&season=${season}&episode=${episode}`
+                    else full_url = url;                    
                     page.goto(full_url)
                         .then(() => {
                             page.locator("#player_iframe").click({ force: true });
@@ -86,7 +88,7 @@ app.get('/download', (req, res) => {
                         .catch(err => {
                             res.send("error occured. please stay on this page while the file downloads.")
                         })
-                    })
+                })
             }
             
                 
