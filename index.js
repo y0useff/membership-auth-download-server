@@ -66,7 +66,8 @@ app.get('/', (req, res) => {
 })
 
 
-async function downloadM3(m3u8_urls, res, req, info, i) {
+async function downloadM3(m3u8_urls, res, req, info, i, download_began) {
+    if (download_began) return; 
     const title = req.query.url.split("imdb=")[1]
     //res as in express.js response
     const file_name = `${title}s${info.season}e${info.episode}.mp4`
@@ -82,10 +83,12 @@ async function downloadM3(m3u8_urls, res, req, info, i) {
                 })
                 .catch((err) => {
                     console.log("Conversion failed: " + err)
+                    console.log(err)
+                    downloadM3(m3u8_urls, res, req, info, i + 1, false)
                 })
         } catch (err) {
             console.log(err)
-            downloadM3(m3u8_urls, res, req, info, i + 1)
+            downloadM3(m3u8_urls, res, req, info, i + 1, false)
         }
        
     
@@ -101,7 +104,7 @@ async function downloadM3(m3u8_urls, res, req, info, i) {
 
 // grabConvertMp4()
 (async () => {
-    this.browser = await playwright.firefox.launch({headless: false})
+    this.browser = await playwright.firefox.launch()
     console.log("Firefox browser launched!")
 })()
 
@@ -148,10 +151,16 @@ async function grabM3u8(browser, res, req, info) {
         await browser.newPage()   
             .then(async (page) => {
                 console.log("new page created")
+                let download_began = false
                 page.on('response',  async response => {
                     if (response.url().endsWith(".m3u8")) {
                         m3u8_urls.push(response.url())
                         console.log("url found in resp")
+                        wait(7000).then(() => {
+                            downloadM3(m3u8_urls, res, req, info, 0, download_began)
+                            download_began = true
+                            page.close()
+                        })
                     }
                 })
                 request(`https://${url}`, {resolveWithFullResponse: true})
@@ -178,8 +187,7 @@ async function grabM3u8(browser, res, req, info) {
                     .catch(err => {
                         res.send("error occured. please stay on this page while the file downloads.")
                     })
-                await wait(10000) 
-                downloadM3(m3u8_urls, res, req, info, 0)
+
             })
 
         }
