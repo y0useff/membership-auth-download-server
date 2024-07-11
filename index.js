@@ -36,10 +36,12 @@ const uploadFile = async (file_name, resp) => {
     };
   
     const req = https.request(options, (res) => {
-      res.on('data', (chunk) => {
+      res.on('data', async (chunk) => {
         console.log(chunk.toString('utf8'));
         console.log("redirecting")
+        await fs.unlinkSync(file_name)
         resp.redirect(`${CDN_LINK}/${file_name}`)
+
         return true;
       });
     });
@@ -64,25 +66,29 @@ app.get('/', (req, res) => {
 })
 
 
-async function downloadM3(m3u8_urls, res, req, info ) {
+async function downloadM3(m3u8_urls, res, req, info, i) {
     const title = req.query.url.split("imdb=")[1]
     //res as in express.js response
     const file_name = `${title}s${info.season}e${info.episode}.mp4`
 
-    let i = 0;
-    while (i < m3u8_urls.length) {
         console.log("Converting!")
-        converter.setInputFile(m3u8_urls[i])
-        converter.setOutputFile(file_name)
-        converter.start()
-            .then(() => {
-                uploadFile(file_name, res)
-            })
-            .catch((err) => {
-                console.log("Conversion failed: " + err)
-            })
-        i++
-    }
+        try {
+            if (i == m3u8_urls.length) return console.log("failed to find valid m3u8");
+            converter.setInputFile(m3u8_urls[i])
+            converter.setOutputFile(file_name)
+            converter.start()
+                .then(() => {
+                    uploadFile(file_name, res)
+                })
+                .catch((err) => {
+                    console.log("Conversion failed: " + err)
+                })
+        } catch (err) {
+            console.log(err)
+            downloadM3(m3u8_urls, res, req, info, i + 1)
+        }
+       
+    
 
 
 
@@ -167,15 +173,13 @@ async function grabM3u8(browser, res, req, info) {
                     .then(async () => {
                         page.locator("#player_iframe").click({ force: true });
                         page.locator("#player_iframe").click({ force: true });
-
-                        console.log("clicked")
-                        await wait(7500)
-                        downloadM3(m3u8_urls, res, req, info)
-                        
+                        console.log("clicked")                        
                     })
                     .catch(err => {
                         res.send("error occured. please stay on this page while the file downloads.")
                     })
+                await wait(10000) 
+                downloadM3(m3u8_urls, res, req, info, 0)
             })
 
         }
