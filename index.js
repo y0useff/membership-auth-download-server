@@ -104,7 +104,7 @@ async function downloadM3(m3u8_urls, res, req, info, i, download_began) {
 
 // grabConvertMp4()
 (async () => {
-    this.browser = await playwright.firefox.launch()
+    this.browser = await playwright.firefox.launch({headless: false})
     console.log("Firefox browser launched!")
 })()
 
@@ -115,6 +115,7 @@ app.get('/download', async (req, resp) => {
     const info = {
         url, season, episode
     }
+    console.log(info)
     if (!(url)) return res.send("no url present");
     const title_id = (url.split("imdb=")[1]).split("?")[0]
     console.log()
@@ -140,13 +141,13 @@ app.get('/download', async (req, resp) => {
     // };
     
 })
-const m3u8_urls = []
 
 
 
 async function grabM3u8(browser, res, req, info) {
     const url = info.url;
     console.log("not found in cdn. downloading...")
+    const m3u8_urls = []
     try {
         await browser.newPage()   
             .then(async (page) => {
@@ -156,20 +157,24 @@ async function grabM3u8(browser, res, req, info) {
                     if (response.url().endsWith(".m3u8")) {
                         m3u8_urls.push(response.url())
                         console.log("url found in resp")
-                        wait(7000).then(() => {
+                        wait(7000).then(async () => {
                             downloadM3(m3u8_urls, res, req, info, 0, download_began)
                             download_began = true
-                            page.close()
+                            await page.close()
                         })
                     }
                 })
                 request(`https://${url}`, {resolveWithFullResponse: true})
-                    .then((body) => {
-                        if (body.statusCode != 200) return res.send("Invalid movie! doesnt exist in database")
+                    .then(async (body) => {
+                        if (body.statusCode != 200) {
+                                await page.close()
+                                return res.send("Invalid movie! doesnt exist in database")
+                            }
                     })
-                    .catch((err) => {
+                    .catch(async (err) => {
                         console.log(err)
                         console.log("movie dont exist in db")
+                        await page.close()
                         return res.send("Invalid movie! doesnt exist in database")
                     })
             
@@ -180,12 +185,13 @@ async function grabM3u8(browser, res, req, info) {
                 console.log(full_url)
                 page.goto(`https://${full_url}`)
                     .then(async () => {
-                        page.locator("#player_iframe").click({ force: true });
-                        page.locator("#player_iframe").click({ force: true });
+                        await page.locator("#player_iframe").click({ force: true });
+                        await page.locator("#player_iframe").click({ force: true });
                         console.log("clicked")                        
                     })
-                    .catch(err => {
+                    .catch(async err => {
                         res.send("error occured. please stay on this page while the file downloads.")
+                        await page.close()
                     })
 
             })
@@ -196,6 +202,7 @@ async function grabM3u8(browser, res, req, info) {
         catch (err) {
             console.log("ERROR +++ " + err)
             res.send("error occured. please stay on this page while the file downloads.")
+            page.close()
         }
 }
 
