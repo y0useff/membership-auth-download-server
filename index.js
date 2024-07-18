@@ -22,7 +22,7 @@ const {checkMembership} = require("./checkIfMember.js")
 
 
 
-const uploadFile = async (file_name, resp) => {
+const uploadFile = async (file_name, resp, redirect) => {
     console.log("Uploading")
     const FILE_PATH = `${file_name}`
     const FILENAME_TO_UPLOAD = `${file_name}`
@@ -43,7 +43,7 @@ const uploadFile = async (file_name, resp) => {
         console.log(chunk.toString('utf8'));
         console.log("redirecting")
         await fs.unlinkSync(file_name)
-        resp.redirect(`${CDN_LINK}/${file_name}`)
+        if (redirect) resp.redirect(`${CDN_LINK}/${file_name}`);
 
         return true;
       });
@@ -76,7 +76,7 @@ app.get('/', (req, res) => {
 })
 
 
-async function downloadM3(m3u8_urls, res, req, info, i, download_began) {
+async function downloadM3(m3u8_urls, res, req, info, i, download_began, redirect) {
     if (download_began) return; 
     const title = req.query.url.split("imdb=")[1]
     //res as in express.js response
@@ -89,28 +89,41 @@ async function downloadM3(m3u8_urls, res, req, info, i, download_began) {
             converter.setOutputFile(file_name)
             converter.start()
                 .then(() => {
-                    uploadFile(file_name, res)
+                    uploadFile(file_name, res, redirect)
                 })
                 .catch((err) => {
                     console.log("Conversion failed: " + err)
                     console.log(err)
-                    downloadM3(m3u8_urls, res, req, info, i + 1, false)
+                    downloadM3(m3u8_urls, res, req, info, i + 1, false, redirect)
                 })
         } catch (err) {
             console.log(err)
-            downloadM3(m3u8_urls, res, req, info, i + 1, false)
+            downloadM3(m3u8_urls, res, req, info, i + 1, false, redirect)
         }
-       
-    
-
-
-
-
-
-
-    
-
 }
+
+app.get('/stream', (req, res) => {
+    let {url, season, episode} = req.query;
+    if (season == undefined) season = 1;
+    if (episode == undefined) episode = 1
+    const info = {
+        url, season, episode
+    }
+    console.log(info)
+    if (!(url)) return res.send("no url present");
+    const title_id = (url.split("imdb=")[1]).split("?")[0]
+    console.log()
+    const urlToContent = `${CDN_LINK}/${title_id}s${season}e${episode}.mp4`
+    fetch(urlToContent)
+        .then(() => {
+            res.redirect(urlToContent)
+        })
+        .catch(() => {
+            upload(info)
+        })
+    const upload = (info) => {return grabM3u8(this.browser, res, req, info, false)}
+});
+
 
 // grabConvertMp4()
 (async () => {
@@ -133,13 +146,13 @@ app.get('/download', async (req, resp) => {
     console.log("url to content: " + title_id)
     fetch(urlToContent)
         .then((res) => {
-            if (res.status == 404) return grabM3u8(this.browser, resp, req, info)
+            if (res.status == 404) return grabM3u8(this.browser, resp, req, info, true)
             console.log("found! redirecting");
             return resp.redirect(urlToContent)
         })
         .catch(() => {
             console.log("testing error, caught an error, proceed");
-            grabM3u8(this.browser, resp, req, info)
+            grabM3u8(this.browser, resp, req, info, true)
 
         })
     // if 
@@ -154,7 +167,7 @@ app.get('/download', async (req, resp) => {
 
 
 
-async function grabM3u8(browser, res, req, info) {
+async function grabM3u8(browser, res, req, info, redirect) {
     const url = info.url;
     console.log("not found in cdn. downloading...")
     const m3u8_urls = []
@@ -168,7 +181,7 @@ async function grabM3u8(browser, res, req, info) {
                         m3u8_urls.push(response.url())
                         console.log("url found in resp")
                         wait(7000).then(async () => {
-                            downloadM3(m3u8_urls, res, req, info, 0, download_began)
+                            downloadM3(m3u8_urls, res, req, info, 0, download_began, redirect)
                             download_began = true
                             await page.close()
                         })
