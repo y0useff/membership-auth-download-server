@@ -18,6 +18,9 @@ const {REGION, BASE_HOSTNAME, STORAGE_ZONE_NAME, ACCESS_KEY, CDN_LINK} = require
 
 const HOSTNAME = REGION ? `${REGION}.${BASE_HOSTNAME}` : BASE_HOSTNAME;
 
+const {checkMembership} = require("./checkIfMember.js")
+
+
 
 const uploadFile = async (file_name, resp) => {
     console.log("Uploading")
@@ -55,6 +58,13 @@ const uploadFile = async (file_name, resp) => {
 
 };
 
+
+app.get('/checkMembership', async (req,res) => {
+    const {email} = req.query
+
+    res.send(await checkMembership(email))
+    
+})
 
 
 let browser;
