@@ -114,16 +114,17 @@ app.get('/stream', (req, res) => {
     const title_id = (url.split("imdb=")[1]).split("?")[0]
     console.log()
     const urlToContent = `${CDN_LINK}/${title_id}s${season}e${episode}.mp4`
+    
     fetch(urlToContent)
-        .then(() => {
-            res.redirect(urlToContent)
+        .then((r) => {
+            if (r.status == 404) return upload(info)
         })
         .catch(() => {
             upload(info)
         })
     const upload = (info) => {return grabM3u8(this.browser, res, req, info, false)}
 });
-
+    
 
 // grabConvertMp4()
 (async () => {
