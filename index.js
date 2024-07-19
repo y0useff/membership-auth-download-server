@@ -35,8 +35,8 @@ app.get("/validateTitle", (req, res) => {
     const urlToContent = `${CDN_LINK}/${title_id}s${season}e${episode}.mp4`
 
     fetch(urlToContent)
-        .then((res) => {
-            if (res.statusCode == 404) return res.status(404);
+        .then((r) => {
+            if (r.status == 404) return res.status(404);
             return res.status(200)
         })
         .catch(() =>{
