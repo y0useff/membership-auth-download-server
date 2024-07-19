@@ -36,11 +36,11 @@ app.get("/validateTitle", (req, res) => {
 
     fetch(urlToContent)
         .then((r) => {
-            if (r.status == 404) return res.status(404);
-            return res.status(200)
+            if (r.status == 404) return res.send(404);
+            return res.send(200)
         })
         .catch(() =>{
-            return res.status(404)
+            return res.send(404)
         })
 })
 
