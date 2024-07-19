@@ -154,7 +154,7 @@ app.get('/stream', (req, res) => {
 
 // grabConvertMp4()
 (async () => {
-    this.browser = await playwright.firefox.launch({headless: false})
+    this.browser = await playwright.firefox.launch({headless: true})
     console.log("Firefox browser launched!")
 })()
 
