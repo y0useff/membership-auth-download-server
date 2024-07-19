@@ -38,7 +38,9 @@ app.get("/validateTitle", (req, res) => {
         .then((res) => {
             if (res.statusCode == 404) return res.status(404);
             return res.status(200)
-
+        })
+        .catch(() =>{
+            return res.status(404)
         })
 })
 
