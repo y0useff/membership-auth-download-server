@@ -21,6 +21,26 @@ const HOSTNAME = REGION ? `${REGION}.${BASE_HOSTNAME}` : BASE_HOSTNAME;
 const {checkMembership} = require("./checkIfMember.js")
 
 
+app.get("/validateTitle", (req, res) => {
+    let {url, season, episode} = req.query;
+    if (season == undefined) season = 1;
+    if (episode == undefined) episode = 1
+    const info = {
+        url, season, episode
+    }
+    console.log(info)
+    if (!(url)) return res.send("no url present");
+    const title_id = (url.split("imdb=")[1]).split("?")[0]
+    console.log()
+    const urlToContent = `${CDN_LINK}/${title_id}s${season}e${episode}.mp4`
+
+    fetch(urlToContent)
+        .then((res) => {
+            if (res.statusCode == 404) return res.status(404);
+            return res.status(200)
+
+        })
+})
 
 const uploadFile = async (file_name, resp, redirect) => {
     console.log("Uploading")
@@ -117,9 +137,15 @@ app.get('/stream', (req, res) => {
     
     fetch(urlToContent)
         .then((r) => {
-            if (r.status == 404) return upload(info)
+            if (r.status == 404) {
+                upload(info)
+                res.status(404)
+            } else {
+                res.status(200)
+            }
         })
         .catch(() => {
+            res.status(404)
             upload(info)
         })
     const upload = (info) => {return grabM3u8(this.browser, res, req, info, false)}
