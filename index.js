@@ -18,7 +18,12 @@ const {REGION, BASE_HOSTNAME, STORAGE_ZONE_NAME, ACCESS_KEY, CDN_LINK} = require
 
 const HOSTNAME = REGION ? `${REGION}.${BASE_HOSTNAME}` : BASE_HOSTNAME;
 
-const {checkMembership} = require("./checkIfMember.js")
+const {checkMembership} = require("./utils/checkIfMember.js")
+const {signUrl} = require("./utils/tokenCdnUrl.js")
+
+
+
+
 
 
 app.get("/validateTitle", (req, res) => {
@@ -32,7 +37,7 @@ app.get("/validateTitle", (req, res) => {
     if (!(url)) return res.send("no url present");
     const title_id = (url.split("imdb=")[1]).split("?")[0]
     console.log()
-    const urlToContent = `${CDN_LINK}/${title_id}s${season}e${episode}.mp4`
+    const urlToContent = signUrl(`${CDN_LINK}/${title_id}s${season}e${episode}.mp4`)
 
     fetch(urlToContent)
         .then((r) => {
@@ -65,7 +70,7 @@ const uploadFile = async (file_name, resp, redirect) => {
         console.log(chunk.toString('utf8'));
         console.log("redirecting")
         await fs.unlinkSync(file_name)
-        if (redirect) resp.redirect(`${CDN_LINK}/${file_name}`);
+        if (redirect) resp.redirect(signUrl(`${CDN_LINK}/${file_name}`));
 
         return true;
       });
@@ -135,7 +140,7 @@ app.get('/stream', (req, res) => {
     if (!(url)) return res.send("no url present");
     const title_id = (url.split("imdb=")[1]).split("?")[0]
     console.log()
-    const urlToContent = `${CDN_LINK}/${title_id}s${season}e${episode}.mp4`
+    const urlToContent = signUrl(`${CDN_LINK}/${title_id}s${season}e${episode}.mp4`)
     
     fetch(urlToContent)
         .then((r) => {
@@ -171,7 +176,7 @@ app.get('/download', async (req, resp) => {
     if (!(url)) return res.send("no url present");
     const title_id = (url.split("imdb=")[1]).split("?")[0]
     console.log()
-    const urlToContent = `${CDN_LINK}/${title_id}s${season}e${episode}.mp4`
+    const urlToContent = signUrl(`${CDN_LINK}/${title_id}s${season}e${episode}.mp4`)
     console.log("url to content: " + title_id)
     fetch(urlToContent)
         .then((res) => {

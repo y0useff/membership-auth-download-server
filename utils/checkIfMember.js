@@ -1,4 +1,4 @@
-const {STRIPE_KEY_SECRET} = require("./config.json")
+const {STRIPE_KEY_SECRET} = require("../config.json")
 const stripe = require('stripe')(STRIPE_KEY_SECRET)
 
 
@@ -38,4 +38,7 @@ async function checkMembership(email) {
 
 }
 
-module.exports = {checkMembership}
+module.exports = {checkMembership};
+(async () => {
+console.log(await checkMembership("test123@gmail.com"))
+})()
