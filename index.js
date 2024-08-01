@@ -22,6 +22,26 @@ const {checkMembership} = require("./utils/checkIfMember.js")
 const {signUrl} = require("./utils/tokenCdnUrl.js")
 
 
+const queue = [];
+
+
+function addToQueue(browser, res, req, info, redirect) {
+    queue.push({browser, res, req, info, redirect})
+
+    //if above object is only member of queue
+    if (queue.length == 1) {
+        return grabM3u8(browser, res, req, info, redirect)
+    }
+}
+
+function startNextQueue() {
+    console.log("current queue length is " + queue.length)
+    let last_upload = queue.shift()
+    if (queue.length == 0) return console.log('queue empty');
+
+    return grabM3u8(queue[0].browser, queue[0].res, queue[0].req, queue[0].info, queue[0].redirect)
+}
+
 
 
 
@@ -50,7 +70,7 @@ app.get("/validateTitle", (req, res) => {
 })
 
 const uploadFile = async (file_name, resp, redirect) => {
-    console.log("Uploading")
+
     const FILE_PATH = `${file_name}`
     const FILENAME_TO_UPLOAD = `${file_name}`
     const readStream = fs.createReadStream(FILE_PATH);
@@ -71,16 +91,22 @@ const uploadFile = async (file_name, resp, redirect) => {
         console.log("redirecting")
         await fs.unlinkSync(file_name)
         if (redirect) resp.redirect(signUrl(`${CDN_LINK}/${file_name}`));
-
+        console.log('moving on in queue')
+        startNextQueue()
         return true;
       });
     });
   
     req.on('error', (error) => {
       console.error(error);
+      console.log("Upload failed!")
+      startNextQueue()
     });
-  
+
+
     readStream.pipe(req);
+
+
 
 
 };
@@ -111,7 +137,10 @@ async function downloadM3(m3u8_urls, res, req, info, i, download_began, redirect
 
         console.log("Converting!")
         try {
-            if (i == m3u8_urls.length) return console.log("failed to find valid m3u8");
+            if (i == m3u8_urls.length) {
+                startNextQueue()
+                return console.log("failed to find valid m3u8");
+            }
             converter.setInputFile(m3u8_urls[i])
             converter.setOutputFile(file_name)
             converter.start()
@@ -155,7 +184,7 @@ app.get('/stream', (req, res) => {
             res.status(404)
             upload(info)
         })
-    const upload = (info) => {return grabM3u8(this.browser, res, req, info, false)}
+    const upload = (info) => {return addToQueue(this.browser, res, req, info, false)}
 });
     
 
@@ -180,13 +209,13 @@ app.get('/download', async (req, resp) => {
     console.log("url to content: " + title_id)
     fetch(urlToContent)
         .then((res) => {
-            if (res.status == 404) return grabM3u8(this.browser, resp, req, info, true)
+            if (res.status == 404) return addToQueue(this.browser, resp, req, info, true)
             console.log("found! redirecting");
             return resp.redirect(urlToContent)
         })
         .catch(() => {
             console.log("testing error, caught an error, proceed");
-            grabM3u8(this.browser, resp, req, info, true)
+            addToQueue(this.browser, resp, req, info, true)
 
         })
     // if 
@@ -225,6 +254,7 @@ async function grabM3u8(browser, res, req, info, redirect) {
                     .then(async (body) => {
                         if (body.statusCode != 200) {
                                 await page.close()
+                                startNextQueue()
                                 return res.send("Invalid movie! doesnt exist in database")
                             }
                     })
@@ -232,6 +262,7 @@ async function grabM3u8(browser, res, req, info, redirect) {
                         console.log(err)
                         console.log("movie dont exist in db")
                         await page.close()
+                        startNextQueue()
                         return res.send("Invalid movie! doesnt exist in database")
                     })
             
@@ -248,6 +279,7 @@ async function grabM3u8(browser, res, req, info, redirect) {
                     })
                     .catch(async err => {
                         res.send("error occured. please stay on this page while the file downloads.")
+                        startNextQueue()
                         await page.close()
                     })
 
@@ -259,6 +291,7 @@ async function grabM3u8(browser, res, req, info, redirect) {
         catch (err) {
             console.log("ERROR +++ " + err)
             res.send("error occured. please stay on this page while the file downloads.")
+            startNextQueue()
             page.close()
         }
 }
