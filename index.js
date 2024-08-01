@@ -25,8 +25,8 @@ const {signUrl} = require("./utils/tokenCdnUrl.js")
 const queue = [];
 
 
-function addToQueue(browser, res, req, info, redirect) {
-    queue.push({browser, res, req, info, redirect})
+function addToQueue(browser, res, req, info, redirect, email) {
+    queue.push({browser, res, req, info, redirect, email})
 
     //if above object is only member of queue
     if (queue.length == 1) {
@@ -35,8 +35,8 @@ function addToQueue(browser, res, req, info, redirect) {
 }
 
 function startNextQueue() {
-    console.log("current queue length is " + queue.length)
     let last_upload = queue.shift()
+    console.log("current queue length is " + queue.length)
     if (queue.length == 0) return console.log('queue empty');
 
     return grabM3u8(queue[0].browser, queue[0].res, queue[0].req, queue[0].info, queue[0].redirect)
@@ -195,27 +195,33 @@ app.get('/stream', (req, res) => {
 })()
 
 app.get('/download', async (req, resp) => {
-    let {url, season, episode} = req.query;
+    let {url, season, episode, email} = req.query;
     if (season == undefined) season = 1;
     if (episode == undefined) episode = 1
     const info = {
         url, season, episode
     }
     console.log(info)
-    if (!(url)) return res.send("no url present");
+    console.log(email)
+    for (let item of queue) {
+        if (item.email == email) {
+            return resp.send("You currently have something in queue to download!")
+        }
+    }
+    if (!(url)) return resp.send("no url present");
     const title_id = (url.split("imdb=")[1]).split("?")[0]
     console.log()
     const urlToContent = signUrl(`${CDN_LINK}/${title_id}s${season}e${episode}.mp4`)
     console.log("url to content: " + title_id)
     fetch(urlToContent)
         .then((res) => {
-            if (res.status == 404) return addToQueue(this.browser, resp, req, info, true)
+            if (res.status == 404) return addToQueue(this.browser, resp, req, info, true, email)
             console.log("found! redirecting");
             return resp.redirect(urlToContent)
         })
         .catch(() => {
             console.log("testing error, caught an error, proceed");
-            addToQueue(this.browser, resp, req, info, true)
+            addToQueue(this.browser, resp, req, info, true, email)
 
         })
     // if 
