@@ -17,6 +17,7 @@
   },
   "homepage": "https://github.com/y0useff/membership-auth-download-server#readme",
   "dependencies": {
+    "@2captcha/captcha-solver": "^1.1.1",
     "@ffmpeg-installer/ffmpeg": "^1.1.0",
     "@jsoner/m3u8-to-mp4": "^1.0.3",
     "@playwright/test": "^1.45.1",
@@ -30,6 +31,8 @@
     "node-fetch": "^2.7.0",
     "playwright": "^1.45.1",
     "pug": "^3.0.3",
+    "puppeteer": "^23.1.1",
+    "puppeteer-core": "^23.1.1",
     "request": "^2.88.2",
     "request-promise": "^4.2.6",
     "stripe": "^16.2.0",

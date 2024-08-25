@@ -2,16 +2,23 @@ const express = require('express')
 const path = require('path')
 const app = express()
 const port = 3000
+const {_2CAP_KEY} = require("./config.json")
 
+const puppeteer = require('puppeteer');
 
 const {checkMembership} = require("./utils/checkIfMember.js")
 
+const wait = ms => new Promise(res => setTimeout(res, ms));
+
+const TwoCaptcha = require("@2captcha/captcha-solver")
+const solver = new TwoCaptcha.Solver(_2CAP_KEY)
 
 let browser;
+
 (async () => {
-    this.browser = await playwright.firefox.launch({headless: true})
+    await puppeteer.executablePath
+    this.browser = await puppeteer.launch({browser:"firefox", headless: false}  )
     console.log("Firefox browser launched!")
-    console.log(await getRapidGatorToken())
 })()
 
 app.get('/', (req, res) => {
@@ -32,16 +39,67 @@ app.get("/download", async (req, res) => {
     const {title} = req.query
     console.log(title)
 
-    const options = {
-        headers: {
-            "x-rapidapi-host": "filepursuit.p.rapidapi.com",
-            "x-rapidapi-key": "7e630f0b4bmshe29a5c1e3da1ffcp19b3adjsna8a904c9f72b"
+    //create hashmap using file_name: file_url as key:value
+    const result_map = new Map()
+
+    const page = await this.browser.newPage()
+    let result_count = 0;
+
+    while (result_count <= 50) {
+        let query = `intext:"${title}" (avi|mkv|.mov|mp4|mpg|wmv|flv) intitle:"index.of./" -inurl:(jsp|pl|php|html|aspx|htm|cf|shtml|py) -inurl:(index_of|index.of|listen77|mp3raid|mp3toss|mp3drug|unknownsecret|sirens|wallywashis)&start=${result_count}`
+        await page.goto(`https://google.com/search?q=${query}`)
+        
+        const captcha = (await page.locator("#recaptcha"))
+        console.log(captcha)
+
+        if (!(captcha == undefined)) {
+
+            const captcha_key = await page.evaluate(`document.querySelector("#recaptcha").getAttribute("data-sitekey")`)
+            const data_s = await page.evaluate(`document.querySelector("#recaptcha").getAttribute("data-s")`)
+
+            solver.recaptcha({
+                pageurl: page.url(),
+                googlekey: captcha_key,
+                datas: data_s
+
+              })
+            .then(async (res) => {
+                const token = res.data
+                console.log(token)
+                const text_area = (await page.locator("#g-recaptcha-response"))
+                console.log(text_area)
+                await page.evaluate(`document.querySelector('#g-recaptcha-response').textContent = "${token}";`)
+                console.log("filled")
+                await (await page.locator("#recaptcha")).click()
+                console.log("clicked")
+            })
+              .catch((err) => {
+                console.log(err);
+              })
+        }
+
+
+
+        // const titles = await page.locator("h3").all()
+
+
+        await wait(150000)
+        for (let t of titles) {
+            const title_text = t.textContent;
+        
+            //search for elements which contain the title, to find the parent, then access the href, of the a tag
+            const title_url = (await page.locator('a', {has: t})).href;
+            console.log(title_text)
+            console.log(title_url)
+
+            result_map.set(title_text,title_url)
+            result_count = result_count + 1;
         }
     }
 
-    const response = await fetch("https://filepursuit.p.rapidapi.com?q=breaking%20bad&filetype=mp4&type=video", options)
-    const results = await response.json()
-    res.send(results) 
+
+
+    await wait(10000)
 })
 
 app.listen(port, () => {
@@ -68,10 +126,8 @@ app.listen(port, () => {
 // const {REGION, BASE_HOSTNAME, STORAGE_ZONE_NAME, ACCESS_KEY, CDN_LINK} = require("./config.json")
 
 // const { test, expect } = require('@playwright/test');
-// const playwright = require('playwright');
 // const fs = require('fs')
 // const https = require('https')
-// const wait = ms => new Promise(res => setTimeout(res, ms));
 
 // const fetch = require('node-fetch')
 */
