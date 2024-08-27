@@ -2,23 +2,29 @@ const express = require('express')
 const path = require('path')
 const app = express()
 const port = 3000
-const {_2CAP_KEY} = require("./config.json")
 
-const puppeteer = require('puppeteer');
+const puppeteer = require('puppeteer-extra');
+const StealthPlugin = require('puppeteer-extra-plugin-stealth');
 
 const {checkMembership} = require("./utils/checkIfMember.js")
 
 const wait = ms => new Promise(res => setTimeout(res, ms));
 
 const TwoCaptcha = require("@2captcha/captcha-solver")
-const solver = new TwoCaptcha.Solver(_2CAP_KEY)
 
 let browser;
 
 (async () => {
-    await puppeteer.executablePath
-    this.browser = await puppeteer.launch({browser:"firefox", headless: false}  )
-    console.log("Firefox browser launched!")
+    const pathToExtension = require('path').join(__dirname, '2captcha-solver');
+    puppeteer.use(StealthPlugin())
+    browser = await puppeteer.launch({
+        headless: false,
+        args: [
+        `--disable-extensions-except=${pathToExtension}`,
+        `--load-extension=${pathToExtension}`,
+        ],
+        executablePath: "/usr/bin/google-chrome-stable"
+    })
 })()
 
 app.get('/', (req, res) => {
@@ -34,6 +40,54 @@ app.get('/checkMembership', async (req,res) => {
 
 
 
+async function searchGoogle(title) {
+    
+    const page = (await browser.pages())[0]
+
+    let result_count = 0;
+    let query = `intext:"${title}" (avi|mkv|.mov|mp4|mpg|wmv|flv) intitle:"index.of./" -inurl:(jsp|pl|php|html|aspx|htm|cf|shtml|py) -inurl:(index_of|index.of|listen77|mp3raid|mp3toss|mp3drug|unknownsecret|sirens|wallywashis)&start=${result_count}`
+    await page.goto(`https://google.com/search?q=random`)
+    await wait(2000)
+    await page.goto(`https://google.com/search?q=${query}`)
+    
+    const captcha = (await page.$("#recaptcha"))
+    console.log(captcha)
+
+    if (!(captcha == null)) {
+        await page.click("#recaptcha")
+
+        await page.waitForSelector('.captcha-solver')
+
+        const captcha_screen = await page.$eval(`div[style*="visibility: visible"]`, element => {
+            element.setAttribute('style', "")
+            console.log(element)
+        })
+
+        await wait(4000)
+        await page.click('.captcha-solver-info')
+        await wait(2000)
+        console.log("clicked")
+        await page.click('.captcha-solver-info')
+        await wait(2000)
+        console.log("clicked")
+        await page.click('.captcha-solver-info')
+        await wait(2000)
+        console.log("clicked")
+
+        await wait(15000)
+    }
+
+    page.waitForSelector("h3")
+        .then(() => {
+            console.log("Solved!")
+        })
+        .catch(err => {
+            console.log('an error occured while solving captcha, see below')
+            console.log(err)
+        })
+        
+}
+
 //@OVERRIDE
 app.get("/download", async (req, res) => {
     const {title} = req.query
@@ -42,64 +96,25 @@ app.get("/download", async (req, res) => {
     //create hashmap using file_name: file_url as key:value
     const result_map = new Map()
 
-    const page = await this.browser.newPage()
-    let result_count = 0;
+    // let result_count = 0;
+    // console.log(page)    
+    // while (result_count <= 50) {
 
-    while (result_count <= 50) {
-        let query = `intext:"${title}" (avi|mkv|.mov|mp4|mpg|wmv|flv) intitle:"index.of./" -inurl:(jsp|pl|php|html|aspx|htm|cf|shtml|py) -inurl:(index_of|index.of|listen77|mp3raid|mp3toss|mp3drug|unknownsecret|sirens|wallywashis)&start=${result_count}`
-        await page.goto(`https://google.com/search?q=${query}`)
-        
-        const captcha = (await page.locator("#recaptcha"))
-        console.log(captcha)
+    //     // const titles = await page.$$("h3")
 
-        if (!(captcha == undefined)) {
+    //     // console.log(titles)
+    //     // for (let t of titles) {
+    //     //     console.log(t)
 
-            const captcha_key = await page.evaluate(`document.querySelector("#recaptcha").getAttribute("data-sitekey")`)
-            const data_s = await page.evaluate(`document.querySelector("#recaptcha").getAttribute("data-s")`)
+    //     // }
+    // }
 
-            solver.recaptcha({
-                pageurl: page.url(),
-                googlekey: captcha_key,
-                datas: data_s
-
-              })
-            .then(async (res) => {
-                const token = res.data
-                console.log(token)
-                const text_area = (await page.locator("#g-recaptcha-response"))
-                console.log(text_area)
-                await page.evaluate(`document.querySelector('#g-recaptcha-response').textContent = "${token}";`)
-                console.log("filled")
-                await (await page.locator("#recaptcha")).click()
-                console.log("clicked")
-            })
-              .catch((err) => {
-                console.log(err);
-              })
-        }
-
-
-
-        // const titles = await page.locator("h3").all()
-
-
-        await wait(150000)
-        for (let t of titles) {
-            const title_text = t.textContent;
-        
-            //search for elements which contain the title, to find the parent, then access the href, of the a tag
-            const title_url = (await page.locator('a', {has: t})).href;
-            console.log(title_text)
-            console.log(title_url)
-
-            result_map.set(title_text,title_url)
-            result_count = result_count + 1;
-        }
-    }
-
-
-
-    await wait(10000)
+    // console.log(result_map)
+    searchGoogle("Breaking bad")
+    // await wait(60000)
+    // searchGoogle("good will hunting")
+    // await wait(60000)
+    // searchGoogle("teen titans go")
 })
 
 app.listen(port, () => {
