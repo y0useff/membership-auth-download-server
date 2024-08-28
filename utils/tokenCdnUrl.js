@@ -1,3 +1,4 @@
+/**
 var queryString = require("querystring");
 var crypto = require("crypto");
 
@@ -26,6 +27,7 @@ function signUrl(url, securityKey=TOKEN, expirationTime = 30, userIp, isDirector
 		countriesAllowed: List of countries allowed (exp. CA, US, TH)
 		countriesBlocked: List of countries blocked (exp. CA, US, TH)
 	*/
+	/*
 	var parameterData = "", parameterDataUrl = "", signaturePath = "", hashableBase = "", token = "";
 	var expires = Math.floor(new Date() / 1000) + expirationTime;
 	var url = addCountries(url, countriesAllowed, countriesBlocked);
@@ -65,4 +67,4 @@ function signUrl(url, securityKey=TOKEN, expirationTime = 30, userIp, isDirector
 }
 
 module.exports = {signUrl}
-
+**/
