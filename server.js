@@ -23,7 +23,7 @@ let browser;
         `--disable-extensions-except=${pathToExtension}`,
         `--load-extension=${pathToExtension}`,
         ],
-        executablePath: "/usr/bin/google-chrome-stable"
+        executablePath: "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
     })
 })()
 
@@ -38,15 +38,33 @@ app.get('/checkMembership', async (req,res) => {
     
 })
 
+const searchResults = []
 
+async function getResults(query, start=0) {
+
+    const page = (await browser.pages())[0]
+    await wait(1000)
+    await page.goto(`https://google.com/search?q=${query}&start=${start}`)
+    if (start >= 20) return console.log(searchResults); //call function o display scraped results 
+    const isResultsFound = await page.waitForSelector("h3", {timeout: 60000})
+
+    if (isResultsFound != null) {
+        const titles = page.$$("h3")
+        console.log(titles)
+    }
+    else return console.log("an error occured while trying to solve captcha");
+
+
+}
+
+const result_map = new Map();
 
 async function searchGoogle(title) {
     
     const page = (await browser.pages())[0]
 
     let result_count = 0;
-    let query = `intext:"${title}" (avi|mkv|.mov|mp4|mpg|wmv|flv) intitle:"index.of./" -inurl:(jsp|pl|php|html|aspx|htm|cf|shtml|py) -inurl:(index_of|index.of|listen77|mp3raid|mp3toss|mp3drug|unknownsecret|sirens|wallywashis)&start=${result_count}`
-    await page.goto(`https://google.com/search?q=random`)
+    let query = `intext:"${title}" (avi|mkv|.mov|mp4|mpg|wmv|flv) intitle:"index.of./" -inurl:(jsp|pl|php|html|aspx|htm|cf|shtml|py) -inurl:(index_of|index.of|listen77|mp3raid|mp3toss|mp3drug|unknownsecret|sirens|wallywashis)`
     await wait(2000)
     await page.goto(`https://google.com/search?q=${query}`)
     
@@ -73,19 +91,48 @@ async function searchGoogle(title) {
         await page.click('.captcha-solver-info')
         await wait(2000)
         console.log("clicked")
-
-        await wait(15000)
     }
 
-    page.waitForSelector("h3")
-        .then(() => {
-            console.log("Solved!")
-        })
-        .catch(err => {
-            console.log('an error occured while solving captcha, see below')
-            console.log(err)
-        })
-        
+    const isResultsFound = await page.waitForSelector("h3", {timeout: 60000})
+
+    const search_results = []
+
+    if (isResultsFound != null) {
+        const results = await page.$$eval("h3", (elements, search_results) => {
+            elements.map(el => {
+                const t_name = el.innerHTML
+                const t_url = el.parentElement.href;
+                const result = {
+                    name: t_name,
+                    url: t_url
+                }
+                console.log(result)
+                console.log(search_results)
+                search_results.push(result)
+            })
+
+            return search_results
+        },search_results)
+        console.log(results)
+    }
+    else return console.log("an error occured while trying to solve captcha");
+
+
+    // await page.exposeFunction("setter", (key, val) => result_map.set(key, val))
+    // if (isResultsFound != null) {
+    //     page.$$eval("h3", (elements, result_map) => {
+    //         elements.map(el => {
+    //             const t_name = el.innerHTML
+    //             console.log(el.parentElement.href)
+    //             setter(t_name, "")
+    //             console.log(result_map)
+    //         })
+    //     },result_map)
+    // }
+
+    console.log(result_map)
+
+
 }
 
 //@OVERRIDE
@@ -94,7 +141,7 @@ app.get("/download", async (req, res) => {
     console.log(title)
 
     //create hashmap using file_name: file_url as key:value
-    const result_map = new Map()
+    // const result_map = new Map()
 
     // let result_count = 0;
     // console.log(page)    
