@@ -13,7 +13,7 @@ const wait = ms => new Promise(res => setTimeout(res, ms));
 const TwoCaptcha = require("@2captcha/captcha-solver")
 
 let browser;
-
+let page;
 (async () => {
     const pathToExtension = require('path').join(__dirname, '2captcha-solver');
     puppeteer.use(StealthPlugin())
@@ -25,6 +25,8 @@ let browser;
         ],
         executablePath: "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
     })
+    page = (await browser.pages())[0]
+
 })()
 
 app.get('/', (req, res) => {
@@ -38,49 +40,20 @@ app.get('/checkMembership', async (req,res) => {
     
 })
 
-const searchResults = []
+// const searchResults = []
 
-async function getResults(query, start=0) {
-
-    const page = (await browser.pages())[0]
-    await wait(1000)
-    await page.goto(`https://google.com/search?q=${query}&start=${start}`)
-    if (start >= 20) return console.log(searchResults); //call function o display scraped results 
-    const isResultsFound = await page.waitForSelector("h3", {timeout: 60000})
-
-    if (isResultsFound != null) {
-        const titles = page.$$("h3")
-        console.log(titles)
-    }
-    else return console.log("an error occured while trying to solve captcha");
-
-
-}
-
-const result_map = new Map();
-
-async function searchGoogle(title) {
-    
-    const page = (await browser.pages())[0]
-
-    let result_count = 0;
-    let query = `intext:"${title}" (avi|mkv|.mov|mp4|mpg|wmv|flv) intitle:"index.of./" -inurl:(jsp|pl|php|html|aspx|htm|cf|shtml|py) -inurl:(index_of|index.of|listen77|mp3raid|mp3toss|mp3drug|unknownsecret|sirens|wallywashis)`
-    await wait(2000)
-    await page.goto(`https://google.com/search?q=${query}`)
-    
+async function checkCaptcha() {
     const captcha = (await page.$("#recaptcha"))
     console.log(captcha)
 
     if (!(captcha == null)) {
         await page.click("#recaptcha")
-
         await page.waitForSelector('.captcha-solver')
 
         const captcha_screen = await page.$eval(`div[style*="visibility: visible"]`, element => {
             element.setAttribute('style', "")
             console.log(element)
         })
-
         await wait(4000)
         await page.click('.captcha-solver-info')
         await wait(2000)
@@ -93,10 +66,18 @@ async function searchGoogle(title) {
         console.log("clicked")
     }
 
+
+    else return console.log("an error occured while trying to solve captcha");
+
+
+}
+const search_results = []
+
+async function getResults(query, start=0, redirect=false) {
+
+    if (start >= 20) return search_results;
+    if (redirect==true) await page.goto(`https://google.com/search?q=${query}&start=${start}`)
     const isResultsFound = await page.waitForSelector("h3", {timeout: 60000})
-
-    const search_results = []
-
     if (isResultsFound != null) {
         const results = await page.$$eval("h3", (elements, search_results) => {
             elements.map(el => {
@@ -104,18 +85,34 @@ async function searchGoogle(title) {
                 const t_url = el.parentElement.href;
                 const result = {
                     name: t_name,
-                    url: t_url
+                    url: t_url,
                 }
-                console.log(result)
-                console.log(search_results)
                 search_results.push(result)
             })
-
             return search_results
-        },search_results)
-        console.log(results)
+        }, search_results)
+
+
+        const pageResults = {
+            start: start,
+            results: results
+        }
+        search_results.push(pageResults)
+        return getResults(query, start + 10, true)        
+
     }
-    else return console.log("an error occured while trying to solve captcha");
+}
+
+const result_map = new Map();
+
+async function searchGoogle(title) {
+    
+    let result_count = 0;
+    let query = `intext:"${title}" (avi|mkv|.mov|mp4|mpg|wmv|flv) intitle:"index.of./" -inurl:(jsp|pl|php|html|aspx|htm|cf|shtml|py) -inurl:(index_of|index.of|listen77|mp3raid|mp3toss|mp3drug|unknownsecret|sirens|wallywashis)`
+    await wait(2000)
+    await page.goto(`https://google.com/search?q=${query}`)
+    await checkCaptcha()
+    console.log(await getResults(query, 0, false))
 
 
     // await page.exposeFunction("setter", (key, val) => result_map.set(key, val))
@@ -129,8 +126,6 @@ async function searchGoogle(title) {
     //         })
     //     },result_map)
     // }
-
-    console.log(result_map)
 
 
 }
