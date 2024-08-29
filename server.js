@@ -12,22 +12,7 @@ const wait = ms => new Promise(res => setTimeout(res, ms));
 
 const TwoCaptcha = require("@2captcha/captcha-solver")
 
-let browser;
-let page;
-(async () => {
-    const pathToExtension = require('path').join(__dirname, '2captcha-solver');
-    puppeteer.use(StealthPlugin())
-    browser = await puppeteer.launch({
-        headless: false,
-        args: [
-        `--disable-extensions-except=${pathToExtension}`,
-        `--load-extension=${pathToExtension}`,
-        ],
-        executablePath: "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
-    })
-    page = (await browser.pages())[0]
 
-})()
 
 app.get('/', (req, res) => {
     res.redirect("https://soap2daymovies.app")
@@ -64,6 +49,8 @@ async function checkCaptcha() {
         await page.click('.captcha-solver-info')
         await wait(2000)
         console.log("clicked")
+
+        return await page.waitForSelector("#searchform", {timeout: 60000})
     }
 
 
@@ -74,10 +61,22 @@ async function checkCaptcha() {
 const search_results = []
 
 async function getResults(query, start=0, redirect=false) {
-
+    console.log(start)
     if (start >= 20) return search_results;
-    if (redirect==true) await page.goto(`https://google.com/search?q=${query}&start=${start}`)
+    if (redirect==true) {
+        console.log('redirecting')
+        await page.goto(`https://google.com/search?q=${query}&start=${start}`)
+    }
+    
+    const not_found = page.$('.card-section > p:nth-child(1)')
+    console.log(`not_found var: ${not_found}`)
+    if (not_found) {
+        return search_results
+    }
+
     const isResultsFound = await page.waitForSelector("h3", {timeout: 60000})
+    console.log(`isResultsFound var: ${isResultsFound}`)
+
     if (isResultsFound != null) {
         const results = await page.$$eval("h3", (elements, search_results) => {
             elements.map(el => {
@@ -99,11 +98,10 @@ async function getResults(query, start=0, redirect=false) {
         }
         search_results.push(pageResults)
         return getResults(query, start + 10, true)        
-
     }
+    else return search_results;
 }
 
-const result_map = new Map();
 
 async function searchGoogle(title) {
     
@@ -112,8 +110,10 @@ async function searchGoogle(title) {
     await wait(2000)
     await page.goto(`https://google.com/search?q=${query}`)
     await checkCaptcha()
-    console.log(await getResults(query, 0, false))
-
+    console.log("captcha finished, beginnning scraped")
+    const scraped_results = (await getResults(query, 0, false))
+    console.log(scraped_results)
+    return scraped_results;
 
     // await page.exposeFunction("setter", (key, val) => result_map.set(key, val))
     // if (isResultsFound != null) {
@@ -130,10 +130,41 @@ async function searchGoogle(title) {
 
 }
 
+
+let browser;
+let page;
+
+
 //@OVERRIDE
 app.get("/download", async (req, res) => {
-    const {title} = req.query
-    console.log(title)
+    try {
+        (async () => {
+            const pathToExtension = require('path').join(__dirname, '2captcha-solver');
+            puppeteer.use(StealthPlugin())
+            browser = await puppeteer.launch({
+                headless: false,
+                args: [
+                `--disable-extensions-except=${pathToExtension}`,
+                `--load-extension=${pathToExtension}`,
+                ],
+                executablePath: "/usr/bin/google-chrome"
+            })
+            page = (await browser.pages())[0]
+        })();
+
+        const {title} = req.query
+        console.log(title)
+        const response = await searchGoogle(title)
+        console.log(response)
+        // const response = await searchGoogle(title)
+        // console.log(response)
+        await browser.close()
+        return await res.send(response)
+    }
+    catch (e) {
+        console.log(e)
+    }
+
 
     //create hashmap using file_name: file_url as key:value
     // const result_map = new Map()
@@ -152,7 +183,6 @@ app.get("/download", async (req, res) => {
     // }
 
     // console.log(result_map)
-    searchGoogle("Breaking bad")
     // await wait(60000)
     // searchGoogle("good will hunting")
     // await wait(60000)
@@ -236,22 +266,22 @@ app.listen(port, () => {
 })
 */
 
-/* !!! DEPRECATED function addToQueue(browser, res, req, info, redirect, email) {
-    queue.push({browser, res, req, info, redirect, email})
+// function addToQueue(title) {
+//     queue.push({title})
 
-    //if above object is only member of queue
-    if (queue.length == 1) {
-        return grabM3u8(browser, res, req, info, redirect)
-    }
-} */
+//     //if above object is only member of queue
+//     if (queue.length == 1) {
+//         return searchGoogle(title)
+//     }
+// }
 
-/* !!! DEPRECATED function startNextQueue() {
-    let last_upload = queue.shift()
-    console.log("current queue length is " + queue.length)
-    if (queue.length == 0) return console.log('queue empty');
+// function startNextQueue() {
+//     let last_upload = queue.shift()
+//     console.log("current queue length is " + queue.length)
+//     if (queue.length == 0) return console.log('queue empty');
 
-    return grabM3u8(queue[0].browser, queue[0].res, queue[0].req, queue[0].info, queue[0].redirect)
-} */
+//     return addToQueue(queue[0].title)
+// }
 
 /* !!! DEPRECATED app.get("/validateTitle", (req, res) => {
     let {url, season, episode} = req.query;
