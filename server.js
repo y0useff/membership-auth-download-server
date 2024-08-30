@@ -58,7 +58,7 @@ async function checkCaptcha() {
 
 
 }
-const search_results = []
+let search_results = []
 
 async function getResults(query, start=0, redirect=false) {
     console.log(start)
@@ -66,9 +66,12 @@ async function getResults(query, start=0, redirect=false) {
     if (redirect==true) {
         console.log('redirecting')
         await page.goto(`https://google.com/search?q=${query}&start=${start}`)
+            .catch((err) => {
+                console.log('navigation error, likely proxy slow')
+            })
     }
     
-    const not_found = page.$('.card-section > p:nth-child(1)')
+    const not_found = await page.$('.card-section > p:nth-child(1)')
     console.log(`not_found var: ${not_found}`)
     if (not_found) {
         return search_results
@@ -134,9 +137,13 @@ async function searchGoogle(title) {
 let browser;
 let page;
 
+app.get("/results", async (req, res) => {
+    res.render("results.html")
+})
+
 
 //@OVERRIDE
-app.get("/download", async (req, res) => {
+app.get("/scrape", async (req, res) => {
     try {
         (async () => {
             const pathToExtension = require('path').join(__dirname, '2captcha-solver');
@@ -146,10 +153,16 @@ app.get("/download", async (req, res) => {
                 args: [
                 `--disable-extensions-except=${pathToExtension}`,
                 `--load-extension=${pathToExtension}`,
+                // `--proxy-server=http://proxy-server.scraperapi.com:8001`,
+                '--ignore-certificate-errors',
                 ],
                 executablePath: "/usr/bin/google-chrome"
             })
             page = (await browser.pages())[0]
+            // await page.authenticate({
+            //     username: "scraperapi.country_code=us.device_type=desktop",
+            //     password: "a3c8252319373673cfb9b9cd4115dcc1"
+            // })
         })();
 
         const {title} = req.query
@@ -158,11 +171,13 @@ app.get("/download", async (req, res) => {
         console.log(response)
         // const response = await searchGoogle(title)
         // console.log(response)
+        search_results = []
         await browser.close()
         return await res.send(response)
     }
     catch (e) {
         console.log(e)
+        await browser.close()
     }
 
 
