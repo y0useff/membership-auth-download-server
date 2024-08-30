@@ -12,7 +12,8 @@ const wait = ms => new Promise(res => setTimeout(res, ms));
 
 const TwoCaptcha = require("@2captcha/captcha-solver")
 
-
+app.set('view engine', 'ejs');
+app.set('views', path.join(__dirname, 'views'));
 
 app.get('/', (req, res) => {
     res.redirect("https://soap2daymovies.app")
@@ -50,7 +51,7 @@ async function checkCaptcha() {
         await wait(2000)
         console.log("clicked")
 
-        return await page.waitForSelector("#searchform", {timeout: 60000})
+        return await page.waitForSelector("#searchform", {timeout: 180000})
     }
 
 
@@ -79,9 +80,9 @@ async function getResults(query, start=0, redirect=false) {
 
     const isResultsFound = await page.waitForSelector("h3", {timeout: 60000})
     console.log(`isResultsFound var: ${isResultsFound}`)
-
+    let page_results = []
     if (isResultsFound != null) {
-        const results = await page.$$eval("h3", (elements, search_results) => {
+        page_results = await page.$$eval("h3", (elements, page_results) => {
             elements.map(el => {
                 const t_name = el.innerHTML
                 const t_url = el.parentElement.href;
@@ -89,17 +90,18 @@ async function getResults(query, start=0, redirect=false) {
                     name: t_name,
                     url: t_url,
                 }
-                search_results.push(result)
+                page_results.push(result)
             })
-            return search_results
-        }, search_results)
+            return page_results
+        }, page_results)
+
+        // console.log(JSON.stringify(results))
 
 
-        const pageResults = {
+        search_results.push({
             start: start,
-            results: results
-        }
-        search_results.push(pageResults)
+            results: page_results
+        })
         return getResults(query, start + 10, true)        
     }
     else return search_results;
@@ -137,15 +139,18 @@ async function searchGoogle(title) {
 let browser;
 let page;
 
-app.get("/results", async (req, res) => {
-    res.render("results.html")
-})
-
+// app.get("/results", async (req, res) => {
+//     const {title} = req.query
+    
+//     res.render("results")
+// })
 
 //@OVERRIDE
 app.get("/scrape", async (req, res) => {
     try {
-        (async () => {
+        const proxy = (() => require('fs').readFileSync('proxies.txt', 'utf8').split('\n').filter(Boolean)[Math.floor(Math.random() * require('fs').readFileSync('proxies.txt', 'utf8').split('\n').filter(Boolean).length)])(); 
+        console.log(proxy)
+        await (async () => {
             const pathToExtension = require('path').join(__dirname, '2captcha-solver');
             puppeteer.use(StealthPlugin())
             browser = await puppeteer.launch({
@@ -153,16 +158,17 @@ app.get("/scrape", async (req, res) => {
                 args: [
                 `--disable-extensions-except=${pathToExtension}`,
                 `--load-extension=${pathToExtension}`,
-                // `--proxy-server=http://proxy-server.scraperapi.com:8001`,
+                `--proxy-server=http://${proxy}`,
                 '--ignore-certificate-errors',
                 ],
                 executablePath: "/usr/bin/google-chrome"
             })
             page = (await browser.pages())[0]
-            // await page.authenticate({
-            //     username: "scraperapi.country_code=us.device_type=desktop",
-            //     password: "a3c8252319373673cfb9b9cd4115dcc1"
-            // })
+            await page.authenticate({
+                username: "scraperapi.country_code=us.device_type=desktop",
+                password: "a3c8252319373673cfb9b9cd4115dcc1"
+            })
+            
         })();
 
         const {title} = req.query
@@ -173,6 +179,10 @@ app.get("/scrape", async (req, res) => {
         // console.log(response)
         search_results = []
         await browser.close()
+
+        await res.render("results", {
+            response: response
+        })
         return await res.send(response)
     }
     catch (e) {
