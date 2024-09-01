@@ -61,8 +61,7 @@ async function checkCaptcha() {
 }
 let search_results = []
 
-async function getResults(query, start=0, redirect=false) {
-    console.log(start)
+async function getResults(query, start=0, redirect=false, ) {
     if (start >= 20) return search_results;
     if (redirect==true) {
         console.log('redirecting')
@@ -108,15 +107,16 @@ async function getResults(query, start=0, redirect=false) {
 }
 
 
-async function searchGoogle(title) {
+async function searchGoogle(title, dorkMode=0) {
     
     let result_count = 0;
-    let query = `intext:"${title}" (avi|mkv|.mov|mp4|mpg|wmv|flv) intitle:"index.of./" -inurl:(jsp|pl|php|html|aspx|htm|cf|shtml|py) -inurl:(index_of|index.of|listen77|mp3raid|mp3toss|mp3drug|unknownsecret|sirens|wallywashis)`
+    let query = [`intext:"${title}" (avi|mkv|.mov|mp4|mpg|wmv|flv) intitle:"index.of./" -inurl:(jsp|pl|php|html|aspx|htm|cf|shtml|py) -inurl:(index_of|index.of|listen77|mp3raid|mp3toss|mp3drug|unknownsecret|sirens|wallywashis)`, `-inurl:htm -inurl:html intitle:"index of" (avi|mp4|mkv) "${title}"`]
+    query = query[dorkMode]
     await wait(2000)
     await page.goto(`https://google.com/search?q=${query}`)
     await checkCaptcha()
     console.log("captcha finished, beginnning scraped")
-    const scraped_results = (await getResults(query, 0, false))
+    const scraped_results = (await getResults(query, 0, false, dorkMode))
     console.log(scraped_results)
     return scraped_results;
 
@@ -173,17 +173,30 @@ app.get("/scrape", async (req, res) => {
 
         const {title} = req.query
         console.log(title)
-        const response = await searchGoogle(title)
+        const response = await searchGoogle(title, 1)
         console.log(response)
         // const response = await searchGoogle(title)
         // console.log(response)
         search_results = []
-        await browser.close()
+        for (let page of response) {
+            results = page.results
+            for (let result of results) {
+                const directory = result.url;
+                console.log(directory)
+                const indexes = await (await fetch(directory)).text()
+                console.log(indexes)
+            }
+            // for (let result of page) {
+            //     console.log(result.url)
+            // }
+        }
 
-        await res.render("results", {
-            response: response
-        })
-        return await res.send(response)
+        // await browser.close()
+
+        // await res.render("results", {
+        //     response: response
+        // })
+        // return await res.send(response)
     }
     catch (e) {
         console.log(e)
