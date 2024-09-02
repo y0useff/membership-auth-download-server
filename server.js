@@ -150,90 +150,61 @@ let page;
 // })
 
 var re = /(?:\.([^.]+))?$/;
-let site_results = []
-async function recursivelyFindVideos(directory, files_found) {
-    fetch(directory)
-        .then(async (response) => {
-            const html = await response.text()
 
-            let dom = parse(html)
-            //if pre tag is found, parse + process inner pre text 
-            if (dom.querySelector('pre') != null) dom = parse(dom.querySelector('pre').rawText)
-            const directories = dom.querySelectorAll('a')
+
+async function recursivelyFindVideos(directory, files_found, visited_paths=[]) {
+    try {
+        const response = await fetch(directory);
+        if (response.headers.get('content-type') == "text/html") {
+            const html = await response.text();
+        
+
+
+            let dom = parse(html);
+            
+            // If a <pre> tag is found, parse its text content
+            if (dom.querySelector('pre') != null) {
+                dom = parse(dom.querySelector('pre').rawText);
+            }
+            
+            const directories = dom.querySelectorAll('a');
+            console.log(directories)
             for (let dir of directories) {
-                const sub_dir = dir.getAttribute('href')
-                if (!(sub_dir == "." || sub_dir == ".." || sub_dir == "/" || sub_dir == "../")) {
-                    let extension = re.exec(sub_dir)[1]
-                    if(videoExtensions.includes(extension)) {
-                        // console.log(`file found : ${directory}${sub_dir}`)
-                        site_results.push(`${directory}${sub_dir}`)
-                        console.log(site_results)
+
+                const sub_dir = dir.getAttribute('href');
+                if (!(sub_dir === "." || sub_dir === ".." || sub_dir === "/" || sub_dir === "../" || sub_dir === "Parent Directory/" || sub_dir === undefined)) {
+                    let path = `${directory}${sub_dir}`
+                    console.log(path)
+                    console.log(sub_dir)
+                    if (!(visited_paths.includes(path))) {
+                        let extension = re.exec(sub_dir)[1];
+                    
+                        if (videoExtensions.includes(extension)) {
+                            files_found.push(`${directory}${sub_dir}`);
+                            visited_paths.push(path)
+                        } 
+                        else {
+                            if (extension === undefined) {
+                                // Recursively find videos in subdirectory
+                                visited_paths.push(path)
+                                await recursivelyFindVideos(`${directory}${sub_dir}`, files_found, visited_paths);
+                            }
+                        }
                     }
-                    else {
-                        console.log('fun call!')
-                        // console.log(`visiting ${directory}${sub_dir}`)
-                        await recursivelyFindVideos(`${directory}${sub_dir}`, files_found)
-                    }
+
+
                 }
             }
-        })
-        .catch(err => {
-            console.log(err)
-        })
-        return site_results
-    // let html;
-
-    // fetch(directory)
-    //     .then(async res => {
-    //         html = await res.text();
-    //     })
-    //     .catch(err => {
-    //         console.log(err)
-    //     })
+        }
+    }
+        
+    catch (err) {
+        console.log(`Error fetching ${directory}:`, err);
+    }
     
-    // if (html == undefined) return; 
+    return files_found;
+}
 
-//     .then(async (response) => {
-//         // console.log("********************************************")
-// //        console.log(directory)
-        
-//         return returnFiles(files_found)
-//             // for (let ext of videoExtensions) {
-//             //     if (sub_dir.endsWith(ext)) {
-//             //         console.log(`file found : ${sub_dir}`)
-//             //     }
-//             //     else {
-//             //         console.log(`visiting ${directory}/${sub_dir}`)
-//             //         recursivelyFindVideos(`${directory}/${sub_dir}`)
-//             //     }
-//             // }
-
-
-//             // if (sub_dir != '' || sub_dir != "/") extension = sub_dir.split('.') // Extract the extension after the last dot
-//             // extension = extension[1];
-//             // console.log(sub_dir)
-//             // console.log(extension)
-//             // if (!(extension == null || extension == undefined)) {
-//             //     if (videoExtensions.some(ext => ext === extension)) {
-//             //     };
-//             // }
-//             // else {
-//             // }
-      
-        
-//         console.log("********************************************")
-
-//     })
-//     .catch(err => {
-//         console.log(err)
-//         console.log(`${directory} failed`)
-//     });
-
-    // return (returnFiles = (files) => {return files})()
-
-
-
-};
 
 //@OVERRIDE
 
@@ -242,6 +213,7 @@ async function recursivelyFindVideos(directory, files_found) {
 app.get("/scrape", async (req, res) => {
     try {
         const proxy = (() => require('fs').readFileSync('proxies.txt', 'utf8').split('\n').filter(Boolean)[Math.floor(Math.random() * require('fs').readFileSync('proxies.txt', 'utf8').split('\n').filter(Boolean).length)])(); 
+        console.log(proxy)
         await (async () => {
             const pathToExtension = require('path').join(__dirname, '2captcha-solver');
             puppeteer.use(StealthPlugin())
@@ -250,10 +222,10 @@ app.get("/scrape", async (req, res) => {
                 args: [
                 `--disable-extensions-except=${pathToExtension}`,
                 `--load-extension=${pathToExtension}`,
-                `--proxy-server=http://${proxy}`,
+                // `--proxy-server=https://${proxy}`,
                 '--ignore-certificate-errors',
                 ],
-                executablePath: "/usr/bin/google-chrome"
+                executablePath: "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
             })
             page = (await browser.pages())[0]
             await page.authenticate({
@@ -274,16 +246,15 @@ app.get("/scrape", async (req, res) => {
             for (let result of results) {
                 const directory = result.url;
                 // const indexes = await (await fetch(directory)).text()
-                if (directory == `http://movie.basnetbd.com/Data/TV%20Series/Breaking%20Bad/`) {
-                    site_results = []
-                    const results = await recursivelyFindVideos(directory,site_results) 
+                // if (directory == `http://movie.basnetbd.com/Data/TV%20Series/Breaking%20Bad/`) {
+                site_results = []
+                await recursivelyFindVideos(directory,site_results) 
 
-                    // console.log(files)
-                    console.log(`results :::::: ${site_results}`)
 
-                    db_results.push(results)
-                    await res.send(JSON.stringify(results))
-                }
+                console.log(site_results)
+
+                db_results.push(JSON.stringify(site_results))
+                // }
 
                 // console.log(files)
                 // await res.send(files)
@@ -293,6 +264,8 @@ app.get("/scrape", async (req, res) => {
             //     console.log(result.url)
             // }
         }
+
+        await res.send(db_results)
         // await res.send(db_results)
         // await browser.close()
 
