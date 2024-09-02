@@ -9,9 +9,14 @@ const StealthPlugin = require('puppeteer-extra-plugin-stealth');
 const {checkMembership} = require("./utils/checkIfMember.js")
 
 const wait = ms => new Promise(res => setTimeout(res, ms));
+require("json-circular-stringify");
 
-const TwoCaptcha = require("@2captcha/captcha-solver")
+// const TwoCaptcha = require("@2captcha/captcha-solver")
 
+const videoExtensions = ["webm", "mkv", "flv", "vob", "ogv", "ogg", "rrc", "gifv", "mng", "mov", "avi", "qt", "wmv", "yuv", "rm", "asf", "amv", "mp4", "m4p", "m4v", "mpg", "mp2", "mpeg", "mpe", "mpv", "m4v", "svi", "3gp", "3g2", "mxf", "roq", "nsv", "flv", "f4v", "f4p", "f4a", "f4b", "mod"]
+
+
+const { parse } =require('node-html-parser');
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 
@@ -117,7 +122,6 @@ async function searchGoogle(title, dorkMode=0) {
     await checkCaptcha()
     console.log("captcha finished, beginnning scraped")
     const scraped_results = (await getResults(query, 0, false, dorkMode))
-    console.log(scraped_results)
     return scraped_results;
 
     // await page.exposeFunction("setter", (key, val) => result_map.set(key, val))
@@ -145,11 +149,99 @@ let page;
 //     res.render("results")
 // })
 
+var re = /(?:\.([^.]+))?$/;
+let site_results = []
+async function recursivelyFindVideos(directory, files_found) {
+    fetch(directory)
+        .then(async (response) => {
+            const html = await response.text()
+
+            let dom = parse(html)
+            //if pre tag is found, parse + process inner pre text 
+            if (dom.querySelector('pre') != null) dom = parse(dom.querySelector('pre').rawText)
+            const directories = dom.querySelectorAll('a')
+            for (let dir of directories) {
+                const sub_dir = dir.getAttribute('href')
+                if (!(sub_dir == "." || sub_dir == ".." || sub_dir == "/" || sub_dir == "../")) {
+                    let extension = re.exec(sub_dir)[1]
+                    if(videoExtensions.includes(extension)) {
+                        // console.log(`file found : ${directory}${sub_dir}`)
+                        site_results.push(`${directory}${sub_dir}`)
+                        console.log(site_results)
+                    }
+                    else {
+                        console.log('fun call!')
+                        // console.log(`visiting ${directory}${sub_dir}`)
+                        await recursivelyFindVideos(`${directory}${sub_dir}`, files_found)
+                    }
+                }
+            }
+        })
+        .catch(err => {
+            console.log(err)
+        })
+        return site_results
+    // let html;
+
+    // fetch(directory)
+    //     .then(async res => {
+    //         html = await res.text();
+    //     })
+    //     .catch(err => {
+    //         console.log(err)
+    //     })
+    
+    // if (html == undefined) return; 
+
+//     .then(async (response) => {
+//         // console.log("********************************************")
+// //        console.log(directory)
+        
+//         return returnFiles(files_found)
+//             // for (let ext of videoExtensions) {
+//             //     if (sub_dir.endsWith(ext)) {
+//             //         console.log(`file found : ${sub_dir}`)
+//             //     }
+//             //     else {
+//             //         console.log(`visiting ${directory}/${sub_dir}`)
+//             //         recursivelyFindVideos(`${directory}/${sub_dir}`)
+//             //     }
+//             // }
+
+
+//             // if (sub_dir != '' || sub_dir != "/") extension = sub_dir.split('.') // Extract the extension after the last dot
+//             // extension = extension[1];
+//             // console.log(sub_dir)
+//             // console.log(extension)
+//             // if (!(extension == null || extension == undefined)) {
+//             //     if (videoExtensions.some(ext => ext === extension)) {
+//             //     };
+//             // }
+//             // else {
+//             // }
+      
+        
+//         console.log("********************************************")
+
+//     })
+//     .catch(err => {
+//         console.log(err)
+//         console.log(`${directory} failed`)
+//     });
+
+    // return (returnFiles = (files) => {return files})()
+
+
+
+};
+
 //@OVERRIDE
+
+
+
 app.get("/scrape", async (req, res) => {
     try {
         const proxy = (() => require('fs').readFileSync('proxies.txt', 'utf8').split('\n').filter(Boolean)[Math.floor(Math.random() * require('fs').readFileSync('proxies.txt', 'utf8').split('\n').filter(Boolean).length)])(); 
-        console.log(proxy)
         await (async () => {
             const pathToExtension = require('path').join(__dirname, '2captcha-solver');
             puppeteer.use(StealthPlugin())
@@ -172,25 +264,36 @@ app.get("/scrape", async (req, res) => {
         })();
 
         const {title} = req.query
-        console.log(title)
         const response = await searchGoogle(title, 1)
-        console.log(response)
         // const response = await searchGoogle(title)
         // console.log(response)
+        const db_results = []
         search_results = []
         for (let page of response) {
             results = page.results
             for (let result of results) {
                 const directory = result.url;
-                console.log(directory)
-                const indexes = await (await fetch(directory)).text()
-                console.log(indexes)
+                // const indexes = await (await fetch(directory)).text()
+                if (directory == `http://movie.basnetbd.com/Data/TV%20Series/Breaking%20Bad/`) {
+                    site_results = []
+                    const results = await recursivelyFindVideos(directory,site_results) 
+
+                    // console.log(files)
+                    console.log(`results :::::: ${site_results}`)
+
+                    db_results.push(results)
+                    await res.send(JSON.stringify(results))
+                }
+
+                // console.log(files)
+                // await res.send(files)
+                // files = []
             }
             // for (let result of page) {
             //     console.log(result.url)
             // }
         }
-
+        // await res.send(db_results)
         // await browser.close()
 
         // await res.render("results", {
