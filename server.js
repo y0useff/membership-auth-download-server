@@ -7,16 +7,23 @@ const puppeteer = require('puppeteer-extra');
 const StealthPlugin = require('puppeteer-extra-plugin-stealth');
 
 const {checkMembership} = require("./utils/checkIfMember.js")
-
+const { parse } =require('node-html-parser');
 const wait = ms => new Promise(res => setTimeout(res, ms));
 require("json-circular-stringify");
+const {createClient} = require('redis')
 
 // const TwoCaptcha = require("@2captcha/captcha-solver")
+let client;
+(async ()=> {
+    client = await createClient()
+        .on('error', err => console.log('Redis Client Error', err))
+        .connect();
+    })();
 
 const videoExtensions = ["webm", "mkv", "flv", "vob", "ogv", "ogg", "rrc", "gifv", "mng", "mov", "avi", "qt", "wmv", "yuv", "rm", "asf", "amv", "mp4", "m4p", "m4v", "mpg", "mp2", "mpeg", "mpe", "mpv", "m4v", "svi", "3gp", "3g2", "mxf", "roq", "nsv", "flv", "f4v", "f4p", "f4a", "f4b", "mod"]
 
 
-const { parse } =require('node-html-parser');
+
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 
@@ -73,6 +80,7 @@ async function getResults(query, start=0, redirect=false, ) {
         await page.goto(`https://google.com/search?q=${query}&start=${start}`)
             .catch((err) => {
                 console.log('navigation error, likely proxy slow')
+
             })
     }
     
@@ -180,8 +188,10 @@ async function recursivelyFindVideos(directory, files_found, visited_paths=[]) {
                         let extension = re.exec(sub_dir)[1];
                     
                         if (videoExtensions.includes(extension)) {
-                            files_found.push(`${directory}${sub_dir}`);
+                            files_found.push(path);
                             visited_paths.push(path)
+                            await client.rPush("media_urls", path)
+                            console.log("Added media url to database")
                         } 
                         else {
                             if (extension === undefined) {
@@ -225,7 +235,7 @@ app.get("/scrape", async (req, res) => {
                 // `--proxy-server=https://${proxy}`,
                 '--ignore-certificate-errors',
                 ],
-                executablePath: "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
+                executablePath: "/usr/bin/google-chrome"
             })
             page = (await browser.pages())[0]
             await page.authenticate({
@@ -277,6 +287,7 @@ app.get("/scrape", async (req, res) => {
     catch (e) {
         console.log(e)
         await browser.close()
+        await client.disconnect();
     }
 
 
@@ -303,8 +314,9 @@ app.get("/scrape", async (req, res) => {
     // searchGoogle("teen titans go")
 })
 
-app.listen(port, () => {
-    console.log(`Example app listening on port ${port}`)
+app.listen(port, async () => {
+    console.log(`Example app listening on port ${port}`)    
+
   })
 
 
