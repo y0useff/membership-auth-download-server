@@ -35,9 +35,28 @@ app.get('/', (req, res) => {
   
 
 app.get('/checkMembership', async (req,res) => {
-    const {email} = req.query
-    res.send(await checkMembership(email))
-    
+
+    let {email} = req.query
+    const isMember = await checkMembership(email)
+    email = email.replace("@", "(at)")
+
+    if (!email) return res.send("no email")
+    let member = (await client.ft.search("idx:member", `@email:${email}`))
+    if (member.total != 0) return res.send(member)
+
+    let id = await client.hGet("member", "id")
+    let key = `member:${id}`
+
+
+    await client.hSet(key, "email", email)
+    await client.hSet(key, "isMember", isMember.toString())
+    await client.hSet(key, "downloads", 0)
+
+    await client.hIncrBy("member", "id", 1)
+
+    member = await client.ft.search("idx:member", `@email:${email}`)
+
+    await res.send(member)
 })
 
 // const searchResults = []

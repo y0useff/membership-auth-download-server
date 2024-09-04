@@ -2,30 +2,34 @@
 <html>
     <head></head>
     <body>
-        <table>
-            <tr>
-                <th>
-                    Result name
-                </th>
-                <th>
-                    Success Rate
-                </th>
-                <th>
-                    Actions
-                </th>
-            </tr>
-
-                <% response.forEach((result) => { %>
-                        <tr id="results">
-                            <td>
-                                <a href=<%= result %>> <%= result %> </a>
-                            </td>
-                            <td> 100%</td>
-                            <td>
-                                <button> Report Not Working</button>
-                            </td>
-                        </tr>
-                <% }) %>
-        </table>
+        <center>
+            <table>
+                <tr>
+                    <th>
+                        Result name
+                    </th>
+                    <th>
+                        Actions
+                    </th>
+                </tr>
+    
+                    <% response.forEach((result) => { %>
+                            <tr id="results">
+                                <td>
+                                    <a href=<%= result %>> <%= result %> </a>
+                                </td>
+                                <td>
+                                    <button> Report Not Working</button>
+                                </td>
+                            </tr>
+                    <% }) %>
+            </table>
+        </center>
     </body>
+
+
+
+    <!-- <script>
+
+    </script> -->
 </html>
