@@ -15,19 +15,16 @@
                 </th>
             </tr>
 
-                <% response.forEach((page) => { %>
-                        <% page.results.map((result) => { %>
+                <% response.forEach((result) => { %>
                         <tr id="results">
                             <td>
-                                <a href=<%= result.url %>> <%= result.name %> </a>
+                                <a href=<%= result %>> <%= result %> </a>
                             </td>
                             <td> 100%</td>
                             <td>
-                                <button> Working</button>
-                                <button> Not Working</button>
+                                <button> Report Not Working</button>
                             </td>
                         </tr>
-                        <% }) %>
                 <% }) %>
         </table>
     </body>

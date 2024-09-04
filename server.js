@@ -1,3 +1,5 @@
+const {MAC_PATH, UBUNTU_PATH} = require("./config.json")
+
 const express = require('express')
 const path = require('path')
 const app = express()
@@ -15,7 +17,7 @@ const {createClient} = require('redis')
 // const TwoCaptcha = require("@2captcha/captcha-solver")
 let client;
 (async ()=> {
-    client = await createClient()
+    client = await createClient({url: `redis://165.227.67.83:6379`})
         .on('error', err => console.log('Redis Client Error', err))
         .connect();
     })();
@@ -190,7 +192,19 @@ async function recursivelyFindVideos(directory, files_found, visited_paths=[]) {
                         if (videoExtensions.includes(extension)) {
                             files_found.push(path);
                             visited_paths.push(path)
-                            await client.rPush("media_urls", path)
+                            let id = await client.hGet("media", "id")
+                            let key = `media:${id}`
+
+                            await client.hSet(key, "url", path)
+
+                            console.log(`key - ${key}`)
+
+                            await client.hIncrBy("media", "id", 1)
+
+                            // let key = `media_urls:${await client.get("media_key")}`
+                            // console.log(`id: ${key}`)
+                            // await client.hSet(key, "url", path)
+                            // await client.HINCRBY(key)
                             console.log("Added media url to database")
                         } 
                         else {
@@ -216,6 +230,29 @@ async function recursivelyFindVideos(directory, files_found, visited_paths=[]) {
 }
 
 
+app.get("/search", async (req, res) => {
+    try {
+        const {query} = req.query
+        if (!query) return;
+
+        console.log(query)
+        const response = await client.ft.search("idx:media", query)
+        let results = []
+        for (let result of response.documents) {
+            results.push(result.value.url)
+        }
+        console.log(results)
+        await res.render("results", {
+            response: results
+        })
+
+    }
+    catch (err) {
+        console.log(err)
+    }
+})
+
+
 //@OVERRIDE
 
 
@@ -235,7 +272,7 @@ app.get("/scrape", async (req, res) => {
                 // `--proxy-server=https://${proxy}`,
                 '--ignore-certificate-errors',
                 ],
-                executablePath: "/usr/bin/google-chrome"
+                executablePath: MAC_PATH
             })
             page = (await browser.pages())[0]
             await page.authenticate({
@@ -274,7 +311,7 @@ app.get("/scrape", async (req, res) => {
             //     console.log(result.url)
             // }
         }
-
+        await browser.close()
         await res.send(db_results)
         // await res.send(db_results)
         // await browser.close()
@@ -336,7 +373,6 @@ app.listen(port, async () => {
 // const request = require('request-promise');
 
 
-// const {REGION, BASE_HOSTNAME, STORAGE_ZONE_NAME, ACCESS_KEY, CDN_LINK} = require("./config.json")
 
 // const { test, expect } = require('@playwright/test');
 // const fs = require('fs')
