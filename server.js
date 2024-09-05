@@ -211,20 +211,27 @@ async function recursivelyFindVideos(directory, files_found, visited_paths=[]) {
                         if (videoExtensions.includes(extension)) {
                             files_found.push(path);
                             visited_paths.push(path)
-                            let id = await client.hGet("media", "id")
-                            let key = `media:${id}`
+                            
+                            if ((((await client.ft.search('idx:media', `@url:${path.split("//")[1]}`)).documents).length) == 0) {
+                                let id = await client.hGet("media", "id")
+                                let key = `media:${id}`
+    
+                                await client.hSet(key, "url", path.split("//")[1])
+    
+                                console.log(`key - ${key}`)
+    
+                                await client.hIncrBy("media", "id", 1)
+    
+                                // let key = `media_urls:${await client.get("media_key")}`
+                                // console.log(`id: ${key}`)
+                                // await client.hSet(key, "url", path)
+                                // await client.HINCRBY(key)
+                                console.log("Added media url to database")
+                            }
+                            else {
+                                console.log("media already in db!")
+                            }
 
-                            await client.hSet(key, "url", path)
-
-                            console.log(`key - ${key}`)
-
-                            await client.hIncrBy("media", "id", 1)
-
-                            // let key = `media_urls:${await client.get("media_key")}`
-                            // console.log(`id: ${key}`)
-                            // await client.hSet(key, "url", path)
-                            // await client.HINCRBY(key)
-                            console.log("Added media url to database")
                         } 
                         else {
                             if (extension === undefined) {
@@ -251,11 +258,11 @@ async function recursivelyFindVideos(directory, files_found, visited_paths=[]) {
 
 app.get("/search", async (req, res) => {
     try {
-        const {query} = req.query
-        if (!query) return;
-
-        console.log(query)
-        const response = await client.ft.search("idx:media", query)
+        const {title, email} = req.query
+        if (!title) return;
+        if (await checkMembership(email) != true)  return res.send("Please purchase a membership to download!")
+        console.log(title)
+        const response = await client.ft.search("idx:media", title)
         let results = []
         for (let result of response.documents) {
             results.push(result.value.url)
@@ -271,11 +278,34 @@ app.get("/search", async (req, res) => {
     }
 })
 
+app.get("/download", async (req, res) => {
+    try {
+
+        const {title, email} = req.query
+        if (await checkMembership(email) != true)  return res.send("Please purchase a membership to download!")
+
+        const initial_search_results = (await client.ft.search("idx:media", title)).documents
+        if (initial_search_results.length == 0) {
+            await res.render("waiting", {
+                parameters: req.query
+            })
+        }
+        else {
+            return res.redirect(`http://localhost:3000/search?title=${title}&email=${email}`)
+        }
+    } 
+    catch (err) {
+        console.log(err)
+        res.send("ERR" + err)
+    }
+})
+
 
 //@OVERRIDE
 
 
-
+//todo
+//add queue to scrape functionality, maybe use awaits so only one scraping task is done at
 app.get("/scrape", async (req, res) => {
     try {
         const proxy = (() => require('fs').readFileSync('proxies.txt', 'utf8').split('\n').filter(Boolean)[Math.floor(Math.random() * require('fs').readFileSync('proxies.txt', 'utf8').split('\n').filter(Boolean).length)])(); 
@@ -302,6 +332,7 @@ app.get("/scrape", async (req, res) => {
         })();
 
         const {title} = req.query
+        console.log(`ttttt + ` + title)
         const response = await searchGoogle(title, 1)
         // const response = await searchGoogle(title)
         // console.log(response)
@@ -331,7 +362,7 @@ app.get("/scrape", async (req, res) => {
             // }
         }
         await browser.close()
-        await res.send(db_results)
+        await res.status(200)
         // await res.send(db_results)
         // await browser.close()
 
@@ -342,8 +373,10 @@ app.get("/scrape", async (req, res) => {
     }
     catch (e) {
         console.log(e)
+        await res.status(400)
         await browser.close()
         await client.disconnect();
+
     }
 
 

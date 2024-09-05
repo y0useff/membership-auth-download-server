@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+    <head></head>
+    <body>
+        <h1>
+            <h1>Searching for <span id="title"><%=parameters.title%></span></h1>
+            <%let title = parameters.title%>
+            <%console.log(title)%>
+            <%fetch(`http://localhost:3000/scrape?title=${title}`)%>
+            We are gathering results from all over the internet. Please wait 
+            <span id="seconds"> 30 </span>
+            seconds while we grab them for you. Please do not refresh the page.
+        </h1>
+
+        <h1>
+            You will be redirected automatically.
+        </h1>
+    </body>
+
+
+
+    <script>
+        let timer = setInterval(() => {
+            let seconds = document.querySelector("#seconds").textContent
+            document.querySelector("#seconds").textContent = seconds - 1
+            if (seconds == 1) {
+                clearInterval(timer)
+            } 
+        },1000)
+
+        setTimeout(() => {
+            const params = window.location.href.split("?")[1].split("&") //title=breaking%20bad, email=test123@gmail.com
+            const title = params[0].split("=")[1];
+            const email = params[1].split("=")[1];
+
+            window.location.href = `http://localhost:3000/search?title=${title}&email=${email}`
+
+        },30000)
+            
+
+    </script>
+</html>
