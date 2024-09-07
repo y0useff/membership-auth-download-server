@@ -1,0 +1,2 @@
+FIX: "ClientClosedError: The client is closed" error on database bug
+IMPLEMENT: if captcha, enable 180s wait time

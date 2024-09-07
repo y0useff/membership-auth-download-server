@@ -1,9 +1,9 @@
 const {MAC_PATH, UBUNTU_PATH} = require("./config.json")
-
+process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = 0
 const express = require('express')
 const path = require('path')
 const app = express()
-const port = 3000
+const port = 80
 
 const puppeteer = require('puppeteer-extra');
 const StealthPlugin = require('puppeteer-extra-plugin-stealth');
@@ -140,12 +140,16 @@ async function getResults(query, start=0, redirect=false, ) {
     else return search_results;
 }
 
-
 async function searchGoogle(title, dorkMode=0) {
     
     let result_count = 0;
-    let query = [`intext:"${title}" (avi|mkv|.mov|mp4|mpg|wmv|flv) intitle:"index.of./" -inurl:(jsp|pl|php|html|aspx|htm|cf|shtml|py) -inurl:(index_of|index.of|listen77|mp3raid|mp3toss|mp3drug|unknownsecret|sirens|wallywashis)`, `-inurl:htm -inurl:html intitle:"index of" (avi|mp4|mkv) "${title}"`]
-    query = query[dorkMode]
+    let query = [`intitle:"index.of" (avi|mp4|mpg|wmv) "Parent Directory" -htm -html -php -listen77 -idmovies -movies -inurl:htm -inurl:html -inurl:Php "movie title"
+intitle:"index of" (avi|mp4|mkv|webm|mv4) -inurl:htm -inurl:html -inurl:php + "movie title"
+-inurl:htm -inurl:html -inurl:asp intitle:"index of" +(wmv|mpg|avi|mp4|mkv|webm|m4v) "movie title"
+intext:"movie title" intitle:"index.of" (wmv|mpg|avi|mp4|mkv|mov) -inurl:(jsp|pl|php|html|aspx|htm|cf|shtml)
+movie title +(mkv|mp4|avi|mov|mpg|wmv|divx|mpeg) -inurl:(jsp|pl|php|html|aspx|htm|cf|shtml) intitle:index.of
+intext:"${title}" (avi|mkv|mov|mp4|mpg|wmv) -inurl:(jsp|pl|php|html|aspx|htm|cf|shtml) intitle:"index.of./"`]
+    query = query[0]
     await wait(2000)
     await page.goto(`https://google.com/search?q=${query}`)
     await checkCaptcha()
@@ -197,19 +201,19 @@ async function recursivelyFindVideos(directory, files_found, visited_paths=[]) {
             }
             
             const directories = dom.querySelectorAll('a');
-            console.log(directories)
+	    let results_found_since_site_visit = 0;           
             for (let dir of directories) {
 
                 const sub_dir = dir.getAttribute('href');
                 if (!(sub_dir === "." || sub_dir === ".." || sub_dir === "/" || sub_dir === "../" || sub_dir === "Parent Directory/" || sub_dir === undefined)) {
                     let path = `${directory}${sub_dir}`
                     console.log(path)
-                    console.log(sub_dir)
+                    results_found_since_site_visit += 1;
                     if (!(visited_paths.includes(path))) {
                         let extension = re.exec(sub_dir)[1];
                     
                         if (videoExtensions.includes(extension)) {
-                            files_found.push(path);
+                            files_foend.push(path);
                             visited_paths.push(path)
                             
                             if ((((await client.ft.search('idx:media', `@url:${path.split("//")[1]}`)).documents).length) == 0) {
@@ -232,8 +236,6 @@ async function recursivelyFindVideos(directory, files_found, visited_paths=[]) {
                                 console.log("media already in db!")
                             }
 
-                        } 
-                        else {
                             if (extension === undefined) {
                                 // Recursively find videos in subdirectory
                                 visited_paths.push(path)
@@ -291,7 +293,7 @@ app.get("/download", async (req, res) => {
             })
         }
         else {
-            return res.redirect(`http://localhost:3000/search?title=${title}&email=${email}`)
+            return res.redirect(`http://localhost:80/search?title=${title}&email=${email}`)
         }
     } 
     catch (err) {
@@ -314,14 +316,14 @@ app.get("/scrape", async (req, res) => {
             const pathToExtension = require('path').join(__dirname, '2captcha-solver');
             puppeteer.use(StealthPlugin())
             browser = await puppeteer.launch({
-                headless: false,
+                headless: true,
                 args: [
                 `--disable-extensions-except=${pathToExtension}`,
                 `--load-extension=${pathToExtension}`,
-                // `--proxy-server=https://${proxy}`,
+                `--proxy-server=http://${proxy}`,
                 '--ignore-certificate-errors',
-                ],
-                executablePath: MAC_PATH
+                '--no-sandbox'
+		]
             })
             page = (await browser.pages())[0]
             await page.authenticate({
@@ -698,5 +700,3 @@ app.listen(port, async () => {
             page.close()
         }
 }*/
-  
-
