@@ -19,7 +19,7 @@ const { executablePath } = require("puppeteer")
 // const TwoCaptcha = require("@2captcha/captcha-solver")
 let client;
 (async ()=> {
-    client = await createClient({url: `redis://165.227.67.83:6379`})
+    client = await createClient({url: `redis://127.0.0.1:6379`})
         .on('error', err => console.log('Redis Client Error', err))
         .connect();
     })();
@@ -62,10 +62,12 @@ app.get('/checkMembership', async (req,res) => {
 })
 
 // const searchResults = []
-
+let current_search_query;
 async function checkCaptcha(wait=false, i, title) {
     const timeout = async (ms) => new Promise(res => setTimeout(res, ms));
-
+    for (let i = 0; i<=5; i++) {
+        
+    }
     let result_count = 0;
     let query = [
         `intitle:"index.of" (avi|mp4|mpg|wmv) "Parent Directory" -htm -html -php -listen77 -idmovies -movies -inurl:htm -inurl:html -inurl:Php ""${title}""`,
@@ -76,8 +78,12 @@ async function checkCaptcha(wait=false, i, title) {
         `intext:""${title}"" (avi|mkv|mov|mp4|mpg|wmv) -inurl:(jsp|pl|php|html|aspx|htm|cf|shtml) intitle:"index.of./"`
     ]
     query = query[i]
+    current_search_query = query;
     await timeout(2000)
-    await page.goto(`https://google.com/search?q=${query}`)
+
+
+    
+    await page.goto(`https://google.com/search?q=${current_search_query}`)
 
     const captcha = (await page.$("#recaptcha"))
     console.log(captcha)
@@ -85,7 +91,7 @@ async function checkCaptcha(wait=false, i, title) {
         if (captcha) {
             await browser.close()
             await launchPageWithProxy(await getRandomProxy())
-            return await checkCaptcha(wait, i)
+            return await checkCaptcha(wait, i, title)
         }
     }
     if (!(captcha == null)) {
@@ -117,11 +123,11 @@ async function checkCaptcha(wait=false, i, title) {
 }
 let search_results = []
 
-async function getResults(query, start=0, redirect=false, ) {
+async function getResults(start=0, redirect=false) {
     if (start >= 20) return search_results;
     if (redirect==true) {
         console.log('redirecting')
-        await page.goto(`https://google.com/search?q=${query}&start=${start}`)
+        await page.goto(`https://google.com/search?q=${current_search_query}&start=${start}`)
             .catch((err) => {
                 console.log('navigation error, likely proxy slow')
             })
@@ -157,18 +163,22 @@ async function getResults(query, start=0, redirect=false, ) {
             start: start,
             results: page_results
         })
-        return getResults(query, start + 10, true)        
+        return getResults(start + 10, true)        
     }
     else return search_results;
 }
 
-async function searchGoogle(title, dorkMode=0) {
+async function searchGoogle(title, i) {
     console.log('search google called')
 
-    await checkCaptcha(false, dorkMode, title)
-    console.log("captcha finished, beginnning scraped")
-    const scraped_results = (await getResults(query, 0, false, dorkMode))
+    let scraped_results;
+    for (let i = 0; i<=5; i++) {
+        await checkCaptcha(true, i, title)
+        console.log(`captcha finished on page ${i}, beginnning scraped`)
+        scraped_results = await getResults(0, false)
+    }
     return scraped_results;
+
 
     // await page.exposeFunction("setter", (key, val) => result_map.set(key, val))
     // if (isResultsFound != null) {
@@ -214,6 +224,7 @@ async function recursivelyFindVideos(directory, files_found, visited_paths=[]) {
             }
             
             const directories = dom.querySelectorAll('a');
+            console.log(directories)
 	    let results_found_since_site_visit = 0;           
             for (let dir of directories) {
 
@@ -226,7 +237,7 @@ async function recursivelyFindVideos(directory, files_found, visited_paths=[]) {
                         let extension = re.exec(sub_dir)[1];
                     
                         if (videoExtensions.includes(extension)) {
-                            files_foend.push(path);
+                            files_found.push(path);
                             visited_paths.push(path)
                             
                             if ((((await client.ft.search('idx:media', `@url:${path.split("//")[1]}`)).documents).length) == 0) {
@@ -382,13 +393,27 @@ app.get("/scrape", async (req, res) => {
 
         const {title} = req.query
         console.log(`ttttt + ` + title)
-        
-        const response = await searchGoogle(title, 0)
+        let response = await searchGoogle(title, 0)
+        // for (let i = 0; i <= 5; i++) {
+        //     console.log(`using the ${i}th query`)
+        //     response.push(await searchGoogle(title, i))
+        // }
+       
         console.log(response)
+        res.send(response)
         // const response = await searchGoogle(title)
         // console.log(response)
         const db_results = []
         search_results = []
+
+        // for (let query of response) {
+        //     for (let page of query) {
+        //         for (let results of page) {
+
+        //         }
+        //     }
+        // }   
+
         for (let page of response) {
             results = page.results
             for (let result of results) {
