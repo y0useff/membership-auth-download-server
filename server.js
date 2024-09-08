@@ -3,16 +3,18 @@ process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = 0
 const express = require('express')
 const path = require('path')
 const app = express()
-const port = 80
-
+const port = 3000
+const fs = require('fs')
 const puppeteer = require('puppeteer-extra');
 const StealthPlugin = require('puppeteer-extra-plugin-stealth');
 
 const {checkMembership} = require("./utils/checkIfMember.js")
 const { parse } =require('node-html-parser');
-const wait = ms => new Promise(res => setTimeout(res, ms));
 require("json-circular-stringify");
 const {createClient} = require('redis')
+const { executablePath } = require("puppeteer")
+
+
 
 // const TwoCaptcha = require("@2captcha/captcha-solver")
 let client;
@@ -61,10 +63,31 @@ app.get('/checkMembership', async (req,res) => {
 
 // const searchResults = []
 
-async function checkCaptcha() {
+async function checkCaptcha(wait=false, i, title) {
+    const timeout = async (ms) => new Promise(res => setTimeout(res, ms));
+
+    let result_count = 0;
+    let query = [
+        `intitle:"index.of" (avi|mp4|mpg|wmv) "Parent Directory" -htm -html -php -listen77 -idmovies -movies -inurl:htm -inurl:html -inurl:Php ""${title}""`,
+        `intitle:"index of" (avi|mp4|mkv|webm|mv4) -inurl:htm -inurl:html -inurl:php + ""${title}""`,
+        `-inurl:htm -inurl:html -inurl:asp intitle:"index of" +(wmv|mpg|avi|mp4|mkv|webm|m4v) ""${title}""`,
+        `intext:""${title}"" intitle:"index.of" (wmv|mpg|avi|mp4|mkv|mov) -inurl:(jsp|pl|php|html|aspx|htm|cf|shtml)`,
+        `"${title}" +(mkv|mp4|avi|mov|mpg|wmv|divx|mpeg) -inurl:(jsp|pl|php|html|aspx|htm|cf|shtml) intitle:index.of`,
+        `intext:""${title}"" (avi|mkv|mov|mp4|mpg|wmv) -inurl:(jsp|pl|php|html|aspx|htm|cf|shtml) intitle:"index.of./"`
+    ]
+    query = query[i]
+    await timeout(2000)
+    await page.goto(`https://google.com/search?q=${query}`)
+
     const captcha = (await page.$("#recaptcha"))
     console.log(captcha)
-
+    if (wait == false) {
+        if (captcha) {
+            await browser.close()
+            await launchPageWithProxy(await getRandomProxy())
+            return await checkCaptcha(wait, i)
+        }
+    }
     if (!(captcha == null)) {
         await page.click("#recaptcha")
         await page.waitForSelector('.captcha-solver')
@@ -73,15 +96,15 @@ async function checkCaptcha() {
             element.setAttribute('style', "")
             console.log(element)
         })
-        await wait(4000)
+        await timeout(4000)
         await page.click('.captcha-solver-info')
-        await wait(2000)
+        await timeout(2000)
         console.log("clicked")
         await page.click('.captcha-solver-info')
-        await wait(2000)
+        await timeout(2000)
         console.log("clicked")
         await page.click('.captcha-solver-info')
-        await wait(2000)
+        await timeout(2000)
         console.log("clicked")
 
         return await page.waitForSelector("#searchform", {timeout: 180000})
@@ -101,7 +124,6 @@ async function getResults(query, start=0, redirect=false, ) {
         await page.goto(`https://google.com/search?q=${query}&start=${start}`)
             .catch((err) => {
                 console.log('navigation error, likely proxy slow')
-
             })
     }
     
@@ -141,18 +163,9 @@ async function getResults(query, start=0, redirect=false, ) {
 }
 
 async function searchGoogle(title, dorkMode=0) {
-    
-    let result_count = 0;
-    let query = [`intitle:"index.of" (avi|mp4|mpg|wmv) "Parent Directory" -htm -html -php -listen77 -idmovies -movies -inurl:htm -inurl:html -inurl:Php "movie title"
-intitle:"index of" (avi|mp4|mkv|webm|mv4) -inurl:htm -inurl:html -inurl:php + "movie title"
--inurl:htm -inurl:html -inurl:asp intitle:"index of" +(wmv|mpg|avi|mp4|mkv|webm|m4v) "movie title"
-intext:"movie title" intitle:"index.of" (wmv|mpg|avi|mp4|mkv|mov) -inurl:(jsp|pl|php|html|aspx|htm|cf|shtml)
-movie title +(mkv|mp4|avi|mov|mpg|wmv|divx|mpeg) -inurl:(jsp|pl|php|html|aspx|htm|cf|shtml) intitle:index.of
-intext:"${title}" (avi|mkv|mov|mp4|mpg|wmv) -inurl:(jsp|pl|php|html|aspx|htm|cf|shtml) intitle:"index.of./"`]
-    query = query[0]
-    await wait(2000)
-    await page.goto(`https://google.com/search?q=${query}`)
-    await checkCaptcha()
+    console.log('search google called')
+
+    await checkCaptcha(false, dorkMode, title)
     console.log("captcha finished, beginnning scraped")
     const scraped_results = (await getResults(query, 0, false, dorkMode))
     return scraped_results;
@@ -293,7 +306,7 @@ app.get("/download", async (req, res) => {
             })
         }
         else {
-            return res.redirect(`http://localhost:80/search?title=${title}&email=${email}`)
+            return res.redirect(`http://localhost:3000/search?title=${title}&email=${email}`)
         }
     } 
     catch (err) {
@@ -305,37 +318,73 @@ app.get("/download", async (req, res) => {
 
 //@OVERRIDE
 
+const launchPageWithProxy = async (proxy=undefined) => {
+    const pathToExtension = require('path').join(__dirname, '2captcha-solver');
+    puppeteer.use(StealthPlugin())
+
+    const options = {
+        headless: false,
+        args: [
+            `--disable-extensions-except=${pathToExtension}`,
+            `--load-extension=${pathToExtension}`,
+            '--ignore-certificate-errors',
+            '--no-sandbox'
+        ], executablePath: UBUNTU_PATH
+    }
+    
+    if (proxy != undefined) options.args.push(`--proxy-server=${proxy}`)
+    
+
+    
+    browser = await puppeteer.launch(options)
+    page = (await browser.pages())[0]
+    
+    if (proxy != undefined ) {
+        await page.authenticate({
+            username: "scraperapi.country_code=us.device_type=desktop",
+            password: "a3c8252319373673cfb9b9cd4115dcc1"
+        })
+    }
+
+    return page;   
+}
+
+
+function getRandomProxy(filePath = 'proxies.txt') {
+    return new Promise((resolve, reject) => {
+      fs.readFile(filePath, 'utf8', (err, data) => {
+        if (err) {
+          return reject(new Error(`Could not read the file: ${err.message}`));
+        }
+  
+        // Split the file content into lines
+        const proxies = data.split('\n').map(line => line.trim()).filter(line => line.length > 0);
+  
+        if (proxies.length === 0) {
+          return reject(new Error('The proxy file is empty.'));
+        }
+  
+        // Pick a random proxy
+        const randomIndex = Math.floor(Math.random() * proxies.length);
+        const randomProxy = proxies[randomIndex];
+  
+        resolve(randomProxy);
+      });
+    });
+  }
+
 
 //todo
 //add queue to scrape functionality, maybe use awaits so only one scraping task is done at
 app.get("/scrape", async (req, res) => {
     try {
-        const proxy = (() => require('fs').readFileSync('proxies.txt', 'utf8').split('\n').filter(Boolean)[Math.floor(Math.random() * require('fs').readFileSync('proxies.txt', 'utf8').split('\n').filter(Boolean).length)])(); 
-        console.log(proxy)
-        await (async () => {
-            const pathToExtension = require('path').join(__dirname, '2captcha-solver');
-            puppeteer.use(StealthPlugin())
-            browser = await puppeteer.launch({
-                headless: true,
-                args: [
-                `--disable-extensions-except=${pathToExtension}`,
-                `--load-extension=${pathToExtension}`,
-                `--proxy-server=http://${proxy}`,
-                '--ignore-certificate-errors',
-                '--no-sandbox'
-		]
-            })
-            page = (await browser.pages())[0]
-            await page.authenticate({
-                username: "scraperapi.country_code=us.device_type=desktop",
-                password: "a3c8252319373673cfb9b9cd4115dcc1"
-            })
-            
-        })();
+        await launchPageWithProxy(await getRandomProxy())//;
 
         const {title} = req.query
         console.log(`ttttt + ` + title)
-        const response = await searchGoogle(title, 1)
+        
+        const response = await searchGoogle(title, 0)
+        console.log(response)
         // const response = await searchGoogle(title)
         // console.log(response)
         const db_results = []
