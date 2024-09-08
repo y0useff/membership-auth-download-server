@@ -211,7 +211,9 @@ var re = /(?:\.([^.]+))?$/;
 async function recursivelyFindVideos(directory, files_found, visited_paths=[]) {
     try {
         const response = await fetch(directory);
-        if (response.headers.get('content-type') == "text/html") {
+        console.log(`dir: ${directory} + content type: ${response.headers.get('content-type')}`)
+
+        // if (response.headers.get('content-type') == "text/html") {
             const html = await response.text();
         
 
@@ -243,8 +245,9 @@ async function recursivelyFindVideos(directory, files_found, visited_paths=[]) {
                             if ((((await client.ft.search('idx:media', `@url:${path.split("//")[1]}`)).documents).length) == 0) {
                                 let id = await client.hGet("media", "id")
                                 let key = `media:${id}`
-    
-                                await client.hSet(key, "url", path.split("//")[1])
+                                const url = decodeURIComponent(path.split("//")[1])
+                                console.log(`url: ${url}`)
+                                await client.hSet(key, "url", url)
     
                                 console.log(`key - ${key}`)
     
@@ -272,7 +275,7 @@ async function recursivelyFindVideos(directory, files_found, visited_paths=[]) {
                 }
             }
         }
-    }
+    // }
         
     catch (err) {
         console.log(`Error fetching ${directory}:`, err);
