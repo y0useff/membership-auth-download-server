@@ -6,7 +6,7 @@
             <h1>Searching for <span id="title"><%=parameters.title%></span></h1>
             <%let title = parameters.title%>
             <%console.log(title)%>
-            <%fetch(`http://localhost:3000/scrape?title=${title}`)%>
+            <%fetch(`http://localhost:80/scrape?title=${title}`)%>
             We are gathering results from all over the internet. Please wait 
             <span id="seconds"> 180 </span>
             seconds while we grab them for you. Please do not refresh the page.
@@ -33,7 +33,7 @@
             const title = params[0].split("=")[1];
             const email = params[1].split("=")[1];
 
-            window.location.href = `http://localhost:3000/search?title=${title}&email=${email}`
+            window.location.href = `http://soap2daydownload.com/search?title=${title}&email=${email}`
 
         },180000)
             

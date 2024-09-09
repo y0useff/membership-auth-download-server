@@ -3,7 +3,7 @@ process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = 0
 const express = require('express')
 const path = require('path')
 const app = express()
-const port = 3000
+const port = 80
 const fs = require('fs')
 const puppeteer = require('puppeteer-extra');
 const StealthPlugin = require('puppeteer-extra-plugin-stealth');
@@ -325,7 +325,7 @@ app.get("/download", async (req, res) => {
             })
         }
         else {
-            return res.redirect(`http://localhost:3000/search?title=${title}&email=${email}`)
+            return res.redirect(`http://soap2daydownload.com:/search?title=${title}&email=${email}`)
         }
     } 
     catch (err) {
@@ -342,13 +342,13 @@ const launchPageWithProxy = async (proxy=undefined) => {
     puppeteer.use(StealthPlugin())
 
     const options = {
-        headless: false,
+        headless: true,
         args: [
             `--disable-extensions-except=${pathToExtension}`,
             `--load-extension=${pathToExtension}`,
             '--ignore-certificate-errors',
             '--no-sandbox'
-        ], executablePath: UBUNTU_PATH
+        ]
     }
     
     if (proxy != undefined) options.args.push(`--proxy-server=${proxy}`)
