@@ -14,15 +14,20 @@ require("json-circular-stringify");
 const {createClient} = require('redis')
 const { executablePath } = require("puppeteer")
 
+const proxyCheck = require('advanced-proxy-checker')
+
+// load configuration from file 'config-default-' + process.platform
+// Only linux is supported at the moment
 
 
-// const TwoCaptcha = require("@2captcha/captcha-solver")
 let client;
 (async ()=> {
     client = await createClient({url: `redis://127.0.0.1:6379`})
         .on('error', err => console.log('Redis Client Error', err))
         .connect();
     })();
+// const TwoCaptcha = require("@2captcha/captcha-solver")
+
 
 const videoExtensions = ["webm", "mkv", "flv", "vob", "ogv", "ogg", "rrc", "gifv", "mng", "mov", "avi", "qt", "wmv", "yuv", "rm", "asf", "amv", "mp4", "m4p", "m4v", "mpg", "mp2", "mpeg", "mpe", "mpv", "m4v", "svi", "3gp", "3g2", "mxf", "roq", "nsv", "flv", "f4v", "f4p", "f4a", "f4b", "mod"]
 
@@ -364,9 +369,9 @@ const launchPageWithProxy = async (proxy=undefined) => {
 }
 
 
-function getRandomProxy(filePath = 'proxies.txt') {
+ function getRandomProxy(filePath = 'proxies.txt') {
     return new Promise((resolve, reject) => {
-      fs.readFile(filePath, 'utf8', (err, data) => {
+      fs.readFile(filePath, 'utf8', async (err, data) => {
         if (err) {
           return reject(new Error(`Could not read the file: ${err.message}`));
         }
@@ -381,6 +386,9 @@ function getRandomProxy(filePath = 'proxies.txt') {
         // Pick a random proxy
         const randomIndex = Math.floor(Math.random() * proxies.length);
         const randomProxy = proxies[randomIndex];
+
+        //check random + latency proxy
+    
   
         resolve(randomProxy);
       });
@@ -388,10 +396,12 @@ function getRandomProxy(filePath = 'proxies.txt') {
   }
 
 
+
 //todo
 //add queue to scrape functionality, maybe use awaits so only one scraping task is done at
-app.get("/scrape", async (req, res) => {
+const scrape =  async(req, res) => {
     try {
+        
         await launchPageWithProxy(await getRandomProxy())//;
 
         const {title} = req.query
@@ -416,6 +426,7 @@ app.get("/scrape", async (req, res) => {
         //         }
         //     }
         // }   
+        await browser.close()
 
         for (let page of response) {
             results = page.results
@@ -440,7 +451,6 @@ app.get("/scrape", async (req, res) => {
             //     console.log(result.url)
             // }
         }
-        await browser.close()
         await res.status(200)
         // await res.send(db_results)
         // await browser.close()
@@ -452,12 +462,14 @@ app.get("/scrape", async (req, res) => {
     }
     catch (e) {
         console.log(e)
-        await res.status(400)
         await browser.close()
-        await client.disconnect();
-
+        await scrape(req, res)
     }
+}
 
+app.get("/scrape", async (req, res) => {
+    
+    scrape(req, res)
 
     //create hashmap using file_name: file_url as key:value
     // const result_map = new Map()
