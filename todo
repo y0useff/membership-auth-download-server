@@ -1,6 +1,2 @@
-IMPLEMENT: change proxy if dead
-IMPLEMENT: change proxy if latency is >4000ms
-
-
-FIX: "ClientClosedError: The client is closed" error on database bug
-IMPLEMENT: if captcha, enable 180s wait time
+add: search box to /search page
+add: 90 seconds if no captcha, 180 if there is

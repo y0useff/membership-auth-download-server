@@ -3,7 +3,6 @@ process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = 0
 const express = require('express')
 const path = require('path')
 const app = express()
-const port = 80
 const fs = require('fs')
 const puppeteer = require('puppeteer-extra');
 const StealthPlugin = require('puppeteer-extra-plugin-stealth');
@@ -14,12 +13,22 @@ require("json-circular-stringify");
 const {createClient} = require('redis')
 const { executablePath } = require("puppeteer")
 
-const proxyCheck = require('advanced-proxy-checker')
+// const proxyCheck = require('advanced-proxy-checker')
 
 // load configuration from file 'config-default-' + process.platform
 // Only linux is supported at the moment
 
+const {prod} = require("./config.json")
 
+
+const host_info = {}
+
+host_info.host = prod ? "soap2daydownload.com" : "localhost"
+host_info.port = prod ? "80" : "3000" 
+host_info.headless = prod ? true : false
+
+const port = host_info.port
+console.log(port)
 let client;
 (async ()=> {
     client = await createClient({url: `redis://127.0.0.1:6379`})
@@ -70,17 +79,16 @@ app.get('/checkMembership', async (req,res) => {
 let current_search_query;
 async function checkCaptcha(wait=false, i, title) {
     const timeout = async (ms) => new Promise(res => setTimeout(res, ms));
-    for (let i = 0; i<=5; i++) {
-        
-    }
+
     let result_count = 0;
     let query = [
         `intitle:"index.of" (avi|mp4|mpg|wmv) "Parent Directory" -htm -html -php -listen77 -idmovies -movies -inurl:htm -inurl:html -inurl:Php ""${title}""`,
-        `intitle:"index of" (avi|mp4|mkv|webm|mv4) -inurl:htm -inurl:html -inurl:php + ""${title}""`,
-        `-inurl:htm -inurl:html -inurl:asp intitle:"index of" +(wmv|mpg|avi|mp4|mkv|webm|m4v) ""${title}""`,
-        `intext:""${title}"" intitle:"index.of" (wmv|mpg|avi|mp4|mkv|mov) -inurl:(jsp|pl|php|html|aspx|htm|cf|shtml)`,
+        `intitle:"index of" (avi|mp4|mkv|webm|mv4) -inurl:htm -inurl:html -inurl:php + "${title}"`,
+        `-inurl:htm -inurl:html -inurl:asp intitle:"index of" +(wmv|mpg|avi|mp4|mkv|webm|m4v) "${title}"`,
+        `intext:"${title}" intitle:"index.of" (wmv|mpg|avi|mp4|mkv|mov) -inurl:(jsp|pl|php|html|aspx|htm|cf|shtml)`,
         `"${title}" +(mkv|mp4|avi|mov|mpg|wmv|divx|mpeg) -inurl:(jsp|pl|php|html|aspx|htm|cf|shtml) intitle:index.of`,
-        `intext:""${title}"" (avi|mkv|mov|mp4|mpg|wmv) -inurl:(jsp|pl|php|html|aspx|htm|cf|shtml) intitle:"index.of./"`
+        `intext:"${title}" (avi|mkv|mov|mp4|mpg|wmv) -inurl:(jsp|pl|php|html|aspx|htm|cf|shtml) intitle:"index.of./"`,
+         `-inurl:htm -inurl:html intitle:"index of" (avi|mp4|mkv|mov|wmv) "${title}"`
     ]
     query = query[i]
     current_search_query = query;
@@ -179,7 +187,7 @@ async function searchGoogle(title, i) {
     console.log('search google called')
 
     let scraped_results;
-    for (let i = 0; i<=5; i++) {
+    for (let i = 0; i<=6; i++) {
         await checkCaptcha(true, i, title)
         console.log(`captcha finished on page ${i}, beginnning scraped`)
         scraped_results = await getResults(0, false)
@@ -203,8 +211,7 @@ async function searchGoogle(title, i) {
 }
 
 
-let browser;
-let page;
+
 
 // app.get("/results", async (req, res) => {
 //     const {title} = req.query
@@ -213,7 +220,70 @@ let page;
 // })
 
 var re = /(?:\.([^.]+))?$/;
+let browser;
+let page;
 
+const odd = require(`open-directory-downloader`);
+
+const indexer = new odd.OpenDirectoryDownloader({executablePath:"/Users/yousefghaly/Desktop/Programming/freelance/upwork/client-greg-smitherson/membership-auth-download-server/ODD/OpenDirectoryDownloader"});
+
+
+
+async function scanDirectory(directory, files_found) {
+    await indexer.scanUrl(directory, {
+        outputFile: "/Users/yousefghaly/Desktop/Programming/freelance/upwork/client-greg-smitherson/membership-auth-download-server/urls",
+        keepUrlFile: true,
+        parseScan: true,
+        performSpeedtest: true,
+    })
+        .then(scan_results => {
+            const f = scan_results.scan.Root.Files
+            for (let url of f) {
+                const extension = re.exec(url.FileName)[1]
+                if (videoExtensions.includes(extension)) {
+                    let file_link = url.Url
+                    addMediaToDB(file_link)
+                }
+            }
+        })
+        .catch(err => {
+            console.log(err)
+        })
+
+
+      
+    return files_found
+}
+
+async function addMediaToDB(path) {
+    try {
+        if (((await client.ft.search('idx:media', `@url:${path.split("//")[1]}`)).documents).length == 0) {
+            let id = await client.hGet("media", "id")
+            let key = `media:${id}`
+            const url = decodeURIComponent(path.split("//")[1])
+            console.log(`url: ${url}`)
+            await client.hSet(key, "url", url)
+    
+            console.log(`key - ${key}`)
+    
+            await client.hIncrBy("media", "id", 1)
+    
+            // let key = `media_urls:${await client.get("media_key")}`
+            // console.log(`id: ${key}`)
+            // await client.hSet(key, "url", path)
+            // await client.HINCRBY(key)
+            console.log("Added media url to database")
+        }
+        else {
+            console.log("media already in db!")
+        }
+    } catch (err) {
+        console.log(`err adding ${path}`)
+        console.log(err)
+    }
+
+
+}
 
 async function recursivelyFindVideos(directory, files_found, visited_paths=[]) {
     try {
@@ -248,27 +318,6 @@ async function recursivelyFindVideos(directory, files_found, visited_paths=[]) {
                         if (videoExtensions.includes(extension)) {
                             files_found.push(path);
                             visited_paths.push(path)
-                            
-                            if (((await client.ft.search('idx:media', `@url:${path.split("//")[1]}`)).documents).length == 0) {
-                                let id = await client.hGet("media", "id")
-                                let key = `media:${id}`
-                                const url = decodeURIComponent(path.split("//")[1])
-                                console.log(`url: ${url}`)
-                                await client.hSet(key, "url", url)
-    
-                                console.log(`key - ${key}`)
-    
-                                await client.hIncrBy("media", "id", 1)
-    
-                                // let key = `media_urls:${await client.get("media_key")}`
-                                // console.log(`id: ${key}`)
-                                // await client.hSet(key, "url", path)
-                                // await client.HINCRBY(key)
-                                console.log("Added media url to database")
-                            }
-                            else {
-                                console.log("media already in db!")
-                            }
 
                             if (extension === undefined) {
                                 // Recursively find videos in subdirectory
@@ -327,7 +376,7 @@ app.get("/download", async (req, res) => {
             })
         }
         else {
-            return res.redirect(`http://soap2daydownload.com:/search?title=${title}&email=${email}`)
+            return res.redirect(`http://${host_info.host}:${host_info.port}/search?title=${title}&email=${email}`)
         }
     } 
     catch (err) {
@@ -344,7 +393,7 @@ const launchPageWithProxy = async (proxy=undefined) => {
     puppeteer.use(StealthPlugin())
 
     const options = {
-        headless: true,
+        headless: host_info.headless,
         args: [
             `--disable-extensions-except=${pathToExtension}`,
             `--load-extension=${pathToExtension}`,
@@ -439,10 +488,10 @@ const scrape =  async(req, res) => {
                 // const indexes = await (await fetch(directory)).text()
                 // if (directory == `http://movie.basnetbd.com/Data/TV%20Series/Breaking%20Bad/`) {
                 site_results = []
-                await recursivelyFindVideos(directory,site_results) 
+                await scanDirectory(directory,site_results) 
 
 
-                console.log(site_results)
+                console.log(`sr + ${site_results}`)
 
                 db_results.push(JSON.stringify(site_results))
                 // }
