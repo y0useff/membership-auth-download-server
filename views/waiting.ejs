@@ -8,7 +8,7 @@
             <%console.log(title)%>
             <%fetch(`http://localhost:80/scrape?title=${title}`)%>
             We are gathering results from all over the internet. Please wait 
-            <span id="seconds"> 180 </span>
+            <span id="seconds"> 300 </span>
             seconds while we grab them for you. Please do not refresh the page.
         </h1>
 
@@ -35,7 +35,7 @@
 
             window.location.href = `http://soap2daydownload.com/search?title=${title}&email=${email}`
 
-        },180000)
+        },300000)
             
 
     </script>

@@ -95,7 +95,9 @@ async function checkCaptcha(wait=false, i, title) {
     if (wait == false) {
         if (captcha) {
             await browser.close()
-            await launchPageWithProxy(await getRandomProxy())
+	    let proxy = await getRandomProxy()
+            console.log(proxy)
+	    await launchPageWithProxy(proxy)
             return await checkCaptcha(wait, i, title)
         }
     }
@@ -247,7 +249,7 @@ async function recursivelyFindVideos(directory, files_found, visited_paths=[]) {
                             files_found.push(path);
                             visited_paths.push(path)
                             
-                            if ((((await client.ft.search('idx:media', `@url:${path.split("//")[1]}`)).documents).length) == 0) {
+                            if (((await client.ft.search('idx:media', `@url:${path.split("//")[1]}`)).documents).length == 0) {
                                 let id = await client.hGet("media", "id")
                                 let key = `media:${id}`
                                 const url = decodeURIComponent(path.split("//")[1])
@@ -351,7 +353,7 @@ const launchPageWithProxy = async (proxy=undefined) => {
         ]
     }
     
-    if (proxy != undefined) options.args.push(`--proxy-server=${proxy}`)
+    //if (proxy != undefined) options.args.push(`--proxy-server=${proxy}`)
     
 
     
@@ -389,7 +391,9 @@ const launchPageWithProxy = async (proxy=undefined) => {
 
         //check random + latency proxy
     
-  
+ 
+	
+
         resolve(randomProxy);
       });
     });
