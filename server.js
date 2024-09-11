@@ -236,13 +236,13 @@ async function scanDirectory(directory, files_found) {
         parseScan: true,
         performSpeedtest: true,
     })
-        .then(scan_results => {
+        .then(async scan_results => {
             const f = scan_results.scan.Root.Files
             for (let url of f) {
                 const extension = re.exec(url.FileName)[1]
                 if (videoExtensions.includes(extension)) {
                     let file_link = url.Url
-                    addMediaToDB(file_link)
+                    await addMediaToDB(file_link)
                 }
             }
         })
