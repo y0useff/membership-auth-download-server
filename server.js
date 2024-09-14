@@ -488,7 +488,10 @@ const scrape =  async(req, res) => {
                 console.log(`stderr: ${stderr}`);
                 return;
             }
-            exec(`$ cat ./Scans/* > ./merged-file.txt`)
+            exec(`cat ./Scans/* > ./merged-file.txt`)
+            //add function call to filter every line in ./merged-file.txt to only videos
+            //add videos to database
+            //return search
         });
         console.log('complete')
         // res.send(JSON.stringify(uniq))
