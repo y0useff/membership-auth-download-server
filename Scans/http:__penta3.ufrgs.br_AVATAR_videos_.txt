@@ -1,0 +1,17 @@
+http://penta3.ufrgs.br/AVATAR/videos/Capacitores.mp4
+http://penta3.ufrgs.br/AVATAR/videos/Eletroiman.mp4
+http://penta3.ufrgs.br/AVATAR/videos/Laboratorio Virtual/scripts/config_xml.js
+http://penta3.ufrgs.br/AVATAR/videos/Laboratorio Virtual/scripts/embedded-smart-player.min.js
+http://penta3.ufrgs.br/AVATAR/videos/Laboratorio Virtual/scripts/techsmith-smart-player.min.js
+http://penta3.ufrgs.br/AVATAR/videos/Laboratorio Virtual/skins/remix/techsmith-smart-player.min.css
+http://penta3.ufrgs.br/AVATAR/videos/Laboratorio Virtual/Video-Lab-Virtual_config.xml
+http://penta3.ufrgs.br/AVATAR/videos/Laboratorio Virtual/Video-Lab-Virtual_embed.css
+http://penta3.ufrgs.br/AVATAR/videos/Laboratorio Virtual/Video-Lab-Virtual_First_Frame.png
+http://penta3.ufrgs.br/AVATAR/videos/Laboratorio Virtual/Video-Lab-Virtual_player.html
+http://penta3.ufrgs.br/AVATAR/videos/Laboratorio Virtual/Video-Lab-Virtual.html
+http://penta3.ufrgs.br/AVATAR/videos/Laboratorio Virtual/Video-Lab-Virtual.mp4
+http://penta3.ufrgs.br/AVATAR/videos/Laboratorios Virtuais.pptx
+http://penta3.ufrgs.br/AVATAR/videos/Motor-eletrico.mp4
+http://penta3.ufrgs.br/AVATAR/videos/Motor-experimental-girando.mp4
+http://penta3.ufrgs.br/AVATAR/videos/resistencia.mp4
+http://penta3.ufrgs.br/AVATAR/videos/Transformador-video.mp4

@@ -12,6 +12,8 @@ const { parse } =require('node-html-parser');
 require("json-circular-stringify");
 const {createClient} = require('redis')
 const { executablePath } = require("puppeteer")
+const { exec } = require("child_process");
+
 
 // const proxyCheck = require('advanced-proxy-checker')
 
@@ -223,9 +225,9 @@ var re = /(?:\.([^.]+))?$/;
 let browser;
 let page;
 
-const odd = require(`open-directory-downloader`);
+// const odd = require(`open-directory-downloader`);
 
-const indexer = new odd.OpenDirectoryDownloader({executablePath:"/Users/yousefghaly/Desktop/Programming/freelance/upwork/client-greg-smitherson/membership-auth-download-server/ODD/OpenDirectoryDownloader"});
+// const indexer = new odd.OpenDirectoryDownloader({executablePath:"/Users/yousefghaly/Desktop/Programming/freelance/upwork/client-greg-smitherson/membership-auth-download-server/ODD/OpenDirectoryDownloader"});
 
 
 
@@ -466,7 +468,30 @@ const scrape =  async(req, res) => {
         // }
        
         console.log(response)
-        res.send(response)
+        let final_json = []
+        for (let page of response) {
+            results = page.results
+            for (let result of results) {
+                final_json.push(result.url)
+            }
+        }
+
+        uniq = [...new Set(final_json)];
+
+        await fs.writeFileSync(`${title}.json`, JSON.stringify(uniq))
+        exec(`java -jar ParallelODD.jar ./${title}.json`, (error, stdout, stderr) => {
+            if (error) {
+                console.log(`error: ${error.message}`);
+                return;
+            }
+            if (stderr) {
+                console.log(`stderr: ${stderr}`);
+                return;
+            }
+            exec(`$ cat ./Scans/* > ./merged-file.txt`)
+        });
+        console.log('complete')
+        // res.send(JSON.stringify(uniq))
         // const response = await searchGoogle(title)
         // console.log(response)
         const db_results = []
@@ -481,29 +506,29 @@ const scrape =  async(req, res) => {
         // }   
         await browser.close()
 
-        for (let page of response) {
-            results = page.results
-            for (let result of results) {
-                const directory = result.url;
-                // const indexes = await (await fetch(directory)).text()
-                // if (directory == `http://movie.basnetbd.com/Data/TV%20Series/Breaking%20Bad/`) {
-                site_results = []
-                await scanDirectory(directory,site_results) 
+        // for (let page of response) {
+        //     results = page.results
+        //     for (let result of results) {
+        //         const directory = result.url;
+        //         // const indexes = await (await fetch(directory)).text()
+        //         // if (directory == `http://movie.basnetbd.com/Data/TV%20Series/Breaking%20Bad/`) {
+        //         site_results = []
+        //         await scanDirectory(directory,site_results) 
 
 
-                console.log(`sr + ${site_results}`)
+        //         console.log(`sr + ${site_results}`)
 
-                db_results.push(JSON.stringify(site_results))
-                // }
+        //         db_results.push(JSON.stringify(site_results))
+        //         // }
 
-                // console.log(files)
-                // await res.send(files)
-                // files = []
-            }
-            // for (let result of page) {
-            //     console.log(result.url)
-            // }
-        }
+        //         // console.log(files)
+        //         // await res.send(files)
+        //         // files = []
+        //     }
+        //     // for (let result of page) {
+        //     //     console.log(result.url)
+        //     // }
+        // }
         await res.status(200)
         // await res.send(db_results)
         // await browser.close()
