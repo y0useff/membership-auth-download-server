@@ -36,7 +36,9 @@ let client;
     client = await createClient({url: `redis://127.0.0.1:6379`})
         .on('error', err => console.log('Redis Client Error', err))
         .connect();
-    })();
+    }
+    
+)();
 // const TwoCaptcha = require("@2captcha/captcha-solver")
 
 
@@ -257,28 +259,45 @@ async function scanDirectory(directory, files_found) {
     return files_found
 }
 
-async function addMediaToDB(path) {
+async function addFileToDb(file) {
+    
+ 
+    
     try {
-        if (((await client.ft.search('idx:media', `@url:${path.split("//")[1]}`)).documents).length == 0) {
-            let id = await client.hGet("media", "id")
-            let key = `media:${id}`
-            const url = decodeURIComponent(path.split("//")[1])
-            console.log(`url: ${url}`)
-            await client.hSet(key, "url", url)
+        const line_arr = file.split("\n")
+        for (let line of line_arr){
+            const file_name = line.split("://")[1]
+            console.log(file_name)
+            if (!(file_name == undefined)) {
+                let l_no_space = file_name.replace(" ", "")
     
-            console.log(`key - ${key}`)
-    
-            await client.hIncrBy("media", "id", 1)
-    
-            // let key = `media_urls:${await client.get("media_key")}`
-            // console.log(`id: ${key}`)
-            // await client.hSet(key, "url", path)
-            // await client.HINCRBY(key)
-            console.log("Added media url to database")
-        }
-        else {
-            console.log("media already in db!")
-        }
+                const extension = re.exec(l_no_space)[1]
+                if (videoExtensions.includes(extension)) {
+                    let path = file_name
+                    if (((await client.ft.search('idx:media', `@url:${path}`)).documents).length == 0) {
+                        let id = await client.hGet("media", "id")
+                        let key = `media:${id}`
+                        const url = decodeURIComponent(path)
+                        console.log(`url: ${url}`)
+                        await client.hSet(key, "url", url)
+                
+                        console.log(`key - ${key}`)
+                
+                        await client.hIncrBy("media", "id", 1)
+                
+                        // let key = `media_urls:${await client.get("media_key")}`
+                        // console.log(`id: ${key}`)
+                        // await client.hSet(key, "url", path)
+                        // await client.HINCRBY(key)
+                        console.log("Added media url to database")
+                    }
+                    else {
+                        console.log("media already in db!")
+                    }
+                }
+            }  
+        };
+        
     } catch (err) {
         console.log(`err adding ${path}`)
         console.log(err)
@@ -467,8 +486,9 @@ const scrape =  async(req, res) => {
         //     response.push(await searchGoogle(title, i))
         // }
        
+        let final_json =[]
         console.log(response)
-        let final_json = []
+        await browser.close()
         for (let page of response) {
             results = page.results
             for (let result of results) {
@@ -479,7 +499,7 @@ const scrape =  async(req, res) => {
         uniq = [...new Set(final_json)];
 
         await fs.writeFileSync(`${title}.json`, JSON.stringify(uniq))
-        exec(`java -jar ParallelODD.jar ./${title}.json`, (error, stdout, stderr) => {
+        exec(`java -jar ParallelODD.jar "./${title}.json"`, (error, stdout, stderr) => {
             if (error) {
                 console.log(`error: ${error.message}`);
                 return;
@@ -488,7 +508,14 @@ const scrape =  async(req, res) => {
                 console.log(`stderr: ${stderr}`);
                 return;
             }
-            exec(`cat ./Scans/* > ./merged-file.txt`)
+            exec(`cat ./Scans/* > ./merged-file.txt`, async (error, stdout, stderr) => {
+                console.log("Wrote to merged.txt!")
+                const allFileContents = fs.readFileSync('./merged-file.txt', 'utf-8');
+                await addFileToDb(allFileContents);
+
+            })
+
+
             //add function call to filter every line in ./merged-file.txt to only videos
             //add videos to database
             //return search
@@ -507,7 +534,6 @@ const scrape =  async(req, res) => {
         //         }
         //     }
         // }   
-        await browser.close()
 
         // for (let page of response) {
         //     results = page.results
@@ -576,7 +602,7 @@ app.get("/scrape", async (req, res) => {
 })
 
 app.listen(port, async () => {
-    console.log(`Example app listening on port ${port}`)    
+    console.log(`Example app listening on port ${port}`)
 
   })
 
