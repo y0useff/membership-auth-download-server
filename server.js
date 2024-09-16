@@ -1,4 +1,4 @@
-const {MAC_PATH, UBUNTU_PATH} = require("./config.json")
+const {MAC_PATH, UBUNTU_PATH, DEBUG} = require("./config.json")
 process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = 0
 const express = require('express')
 const path = require('path')
@@ -498,8 +498,8 @@ const scrape =  async(req, res) => {
 
         uniq = [...new Set(final_json)];
 
-        await fs.writeFileSync(`${title}.json`, JSON.stringify(uniq))
-        exec(`java -jar ParallelODD.jar "./${title}.json"`, (error, stdout, stderr) => {
+        await fs.writeFileSync(`./SearchResults/${title}.json`, JSON.stringify(uniq))
+        exec(`java -jar ParallelODD.jar "./SearchResults/${title}.json"`, (error, stdout, stderr) => {
             if (error) {
                 console.log(`error: ${error.message}`);
                 return;
@@ -508,11 +508,11 @@ const scrape =  async(req, res) => {
                 console.log(`stderr: ${stderr}`);
                 return;
             }
-            exec(`cat ./Scans/* > ./merged-file.txt`, async (error, stdout, stderr) => {
-                console.log("Wrote to merged.txt!")
-                const allFileContents = fs.readFileSync('./merged-file.txt', 'utf-8');
+            exec(`cat ./Scans/* > "./Results/${title}.txt"`, async (error, stdout, stderr) => {
+                console.log(`Wrote to ./Results/${title}.txt!`)
+                const allFileContents = fs.readFileSync(`./Results/${title}.txt`, 'utf-8');
                 await addFileToDb(allFileContents);
-
+                if (!DEBUG) exec(`rm ./Results/* && rm ./Scans/* && rm ./SearchResults/*`)
             })
 
 
