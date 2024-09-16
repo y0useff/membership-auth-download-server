@@ -18,6 +18,10 @@ const { exec } = require("child_process");
                     type: SchemaFieldTypes.TEXT,
                     SORTABLE: true
                 },
+                name: {
+                    type: SchemaFieldTypes.TEXT,
+                    SORTABLE: true
+                }
             },
             {
                 ON: "HASH",

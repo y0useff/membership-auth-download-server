@@ -1,2 +1,6 @@
 add: search box to /search page
-add: 90 seconds if no captcha, 180 if there is
+add: parallelization of puppeteer
+add: check if link is dead
+add: check download amount
+
+?? add: 90 seconds if no captcha, 180 if there is ??

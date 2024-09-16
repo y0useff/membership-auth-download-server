@@ -81,16 +81,12 @@ app.get('/checkMembership', async (req,res) => {
 
 // const searchResults = []
 let current_search_query;
-const { Cluster } = require('puppeteer-cluster');
 async function checkCaptcha(wait=false, i, title) {
-
-    let page = await launchPageWithProxy(await getRandomProxy())
-
     const timeout = async (ms) => new Promise(res => setTimeout(res, ms));
 
     let result_count = 0;
     let query = [
-        `intitle:"index.of" (avi|mp4|mpg|wmv) "Parent Directory" -htm -html -php -listen77 -idmovies -movies -inurl:htm -inurl:html -inurl:Php ""${title}""`,
+        `intitle:"index.of" (avi|mp4|mpg|wmv) "Parent Directory" -htm -html -php -listen77 -idmovies -movies -inurl:htm -inurl:html -inurl:Php "${title}"`,
         `intitle:"index of" (avi|mp4|mkv|webm|mv4) -inurl:htm -inurl:html -inurl:php + "${title}"`,
         `-inurl:htm -inurl:html -inurl:asp intitle:"index of" +(wmv|mpg|avi|mp4|mkv|webm|m4v) "${title}"`,
         `intext:"${title}" intitle:"index.of" (wmv|mpg|avi|mp4|mkv|mov) -inurl:(jsp|pl|php|html|aspx|htm|cf|shtml)`,
@@ -98,59 +94,53 @@ async function checkCaptcha(wait=false, i, title) {
         `intext:"${title}" (avi|mkv|mov|mp4|mpg|wmv) -inurl:(jsp|pl|php|html|aspx|htm|cf|shtml) intitle:"index.of./"`,
          `-inurl:htm -inurl:html intitle:"index of" (avi|mp4|mkv|mov|wmv) "${title}"`
     ]
-    query = query[i]
+    query = `intitle:"index of" (avi|mp4|mkv|webm|mv4|wmv|mpg|mov) "${title}" -inurl:(htm|html|php|jsp|pl|aspx|cf|shtml) intext:"${title}"`     //custom gpt generated dork combining
+
     current_search_query = query;
+    await timeout(2000)
 
 
     
-    page.goto(`https://google.com/search?q=${current_search_query}`)
-        .then(async () => {
-            await timeout(1000)
-            const captcha = (await page.$("#recaptcha"))
-            console.log(captcha)
-            if (wait == false) {
-                if (captcha) {
-                    await (await page.browser()).close()
-                    return await checkCaptcha(wait, i, title)
-                }
-            }
-            if (!(captcha == null)) {
-                await page.click("#recaptcha")
-                await page.waitForSelector('.captcha-solver')
-        
-                const captcha_screen = await page.$eval(`div[style*="visibility: visible"]`, element => {
-                    element.setAttribute('style', "")
-                    console.log(element)
-                })
-                await timeout(4000)
-                await page.click('.captcha-solver-info')
-                await timeout(2000)
-                console.log("clicked")
-                await page.click('.captcha-solver-info')
-                await timeout(2000)
-                console.log("clicked")
-                await page.click('.captcha-solver-info')
-                await timeout(2000)
-                console.log("clicked")
-        
-                return await page.waitForSelector("#searchform", {timeout: 180000})
-            }
-        
-        
-            else {
-                console.log("an error occured while trying to solve captcha");
-                await (await page.browser()).close()
-                return await checkCaptcha(wait, i, title)
-            } 
-        })
-        .catch(async err => {
-            console.log(err)
-            console.log("an error occured while trying to solve captcha");
-            await (await page.browser()).close()
-            return await checkCaptcha(wait, i, title)
-        })
+    await page.goto(`https://google.com/search?q=${current_search_query}`, {timeout: 7000, waitUntil: 'domcontentloaded'})
 
-    
+    const captcha = (await page.$("#recaptcha"))
+    const error = (await page.$$(`div[style="font-size:13px"]`))
+    console.log('err: '  + error)
+    //const error = (await page.$())
+    console.log(captcha)
+
+    if (wait == false && page.url().startsWith("https://google.com/sorry/")) {
+        await browser.close()
+	    let proxy = await getRandomProxy()
+        console.log(proxy)
+	    await launchPageWithProxy(proxy)
+        return await checkCaptcha(wait, i, title)
+        
+    }
+    if (!(captcha == null)) {
+        await page.click("#recaptcha")
+        await page.waitForSelector('.captcha-solver')
+
+        const captcha_screen = await page.$eval(`div[style*="visibility: visible"]`, element => {
+            element.setAttribute('style', "")
+            console.log(element)
+        })
+        await timeout(4000)
+        await page.click('.captcha-solver-info')
+        await timeout(2000)
+        console.log("clicked")
+        await page.click('.captcha-solver-info')
+        await timeout(2000)
+        console.log("clicked")
+        await page.click('.captcha-solver-info')
+        await timeout(2000)
+        console.log("clicked")
+
+        return await page.waitForSelector("#searchform", {timeout: 180000})
+    }
+
+
+    else return console.log("an error occured while trying to solve captcha");
 
 
 }
@@ -160,7 +150,7 @@ async function getResults(start=0, redirect=false) {
     if (start >= 20) return search_results;
     if (redirect==true) {
         console.log('redirecting')
-        await page.goto(`https://google.com/search?q=${current_search_query}&start=${start}`)
+        await page.goto(`https://google.com/search?q=${current_search_query}&start=${start}`,{timeout: 7000, waitUntil: 'domcontentloaded'})
             .catch((err) => {
                 console.log('navigation error, likely proxy slow')
             })
@@ -205,19 +195,12 @@ async function searchGoogle(title, i) {
     console.log('search google called')
 
     let scraped_results;
-    await Promise.all([
-        checkCaptcha(true, 0, title),
-        checkCaptcha(true, 1, title),
-        checkCaptcha(true, 2, title),
-        checkCaptcha(true, 3, title),
-        checkCaptcha(true, 4, title),
-        checkCaptcha(true, 5, title),
-        checkCaptcha(true, 6, title)
-
-    ])
-    // console.log(`captcha finished on page ${i}, beginnning scraped`)
-    // scraped_results = await getResults(0, false)
-    // return scraped_results;
+    // for (let i = 0; i<=6; i++) {
+        await checkCaptcha(false, 6, title)
+        console.log(`captcha finished on page ${i}, beginnning scraped`)
+        scraped_results = await getResults(0, false)
+    // }
+    return scraped_results;
 
 
     // await page.exposeFunction("setter", (key, val) => result_map.set(key, val))
@@ -245,7 +228,8 @@ async function searchGoogle(title, i) {
 // })
 
 var re = /(?:\.([^.]+))?$/;
-
+let browser;
+let page;
 
 // const odd = require(`open-directory-downloader`);
 
@@ -280,9 +264,6 @@ async function scanDirectory(directory, files_found) {
 }
 
 async function addFileToDb(file) {
-    
- 
-    
     try {
         const line_arr = file.split("\n")
         for (let line of line_arr){
@@ -294,12 +275,16 @@ async function addFileToDb(file) {
                 const extension = re.exec(l_no_space)[1]
                 if (videoExtensions.includes(extension)) {
                     let path = file_name
-                    if (((await client.ft.search('idx:media', `@url:${path}`)).documents).length == 0) {
+                    const path_space = path.replace(/[^a-zA-Z0-9]/g, ' ');
+                    console.log(`url: ${path}`)
+
+                    if (((await client.ft.search('idx:media', `@name:"${path_space}"`)).documents).length == 0) {
                         let id = await client.hGet("media", "id")
                         let key = `media:${id}`
-                        const url = decodeURIComponent(path)
-                        console.log(`url: ${url}`)
-                        await client.hSet(key, "url", url)
+
+                        await client.hSet(key, "name", path_space)
+                        path = encodeURIComponent(path)
+                        await client.hSet(key, "url", path)
                 
                         console.log(`key - ${key}`)
                 
@@ -388,7 +373,7 @@ app.get("/search", async (req, res) => {
         if (!title) return;
         if (await checkMembership(email) != true)  return res.send("Please purchase a membership to download!")
         console.log(title)
-        const response = await client.ft.search("idx:media", title)
+        const response = await client.ft.search("idx:media", `%${title}%`)
         let results = []
         for (let result of response.documents) {
             results.push(result.value.url)
@@ -428,9 +413,8 @@ app.get("/download", async (req, res) => {
 
 
 //@OVERRIDE
-let x = -100
-let y = 0
-const launchPageWithProxy = async (proxy=undefined) => {
+
+const launchPageWithProxy = async (proxy=`rp.proxyscrape.com:6060`) => {
     const pathToExtension = require('path').join(__dirname, '2captcha-solver');
     puppeteer.use(StealthPlugin())
 
@@ -440,28 +424,23 @@ const launchPageWithProxy = async (proxy=undefined) => {
             `--disable-extensions-except=${pathToExtension}`,
             `--load-extension=${pathToExtension}`,
             '--ignore-certificate-errors',
-            '--no-sandbox',
-            `--window-size=100,200`,
-            '--disable-features=site-per-process',
-            `--window-position=${x = x + 100},${y}`
+            '--no-sandbox'
         ]
-        
     }
     
-    //if (proxy != undefined) options.args.push(`--proxy-server=${proxy}`)
+    if (proxy != undefined) options.args.push(`--proxy-server=${proxy}`)
     
 
     
     browser = await puppeteer.launch(options)
     page = (await browser.pages())[0]
     
-    // if (proxy != undefined) {
-    //     await page.authenticate({
-    //         username: "scraperapi.country_code=us.device_type=desktop",
-    //         password: "a3c8252319373673cfb9b9cd4115dcc1"
-    //     })
-    // }
-
+    if (proxy != undefined ) {
+        await page.authenticate({
+            username: "216cn97f6apjvsz",
+            password: "fyiqxfhlrghb47c"
+        })
+    }
 
     return page;   
 }
@@ -490,7 +469,7 @@ const launchPageWithProxy = async (proxy=undefined) => {
  
 	
 
-        resolve(randomProxy);
+        resolve(`rp.proxyscrape.com:6060`);
       });
     });
   }
@@ -502,11 +481,15 @@ const launchPageWithProxy = async (proxy=undefined) => {
 const scrape =  async(req, res) => {
     try {
         
+        await launchPageWithProxy(await getRandomProxy())//;
 
-        const {title} = req.query
+        const {title, email} = req.query
         console.log(`ttttt + ` + title)
         let response = await searchGoogle(title, 0)
-
+        // for (let i = 0; i <= 5; i++) {
+        //     console.log(`using the ${i}th query`)
+        //     response.push(await searchGoogle(title, i))
+        // }
        
         let final_json =[]
         console.log(response)
@@ -521,7 +504,7 @@ const scrape =  async(req, res) => {
         uniq = [...new Set(final_json)];
 
         await fs.writeFileSync(`./SearchResults/${title}.json`, JSON.stringify(uniq))
-        exec(`java -jar ParallelODD.jar "./SearchResults/${title}.json"`, (error, stdout, stderr) => {
+        exec(`java -jar ParallelODD.jar "./SearchResults/${title}.json" "./OpenDirectoryDownloader/OpenDirectoryDownloader"`, (error, stdout, stderr) => {
             if (error) {
                 console.log(`error: ${error.message}`);
                 return;
@@ -534,7 +517,9 @@ const scrape =  async(req, res) => {
                 console.log(`Wrote to ./Results/${title}.txt!`)
                 const allFileContents = fs.readFileSync(`./Results/${title}.txt`, 'utf-8');
                 await addFileToDb(allFileContents);
-                if (!DEBUG) exec(`rm ./Results/* && rm ./Scans/* && rm ./SearchResults/* && rm ./*.log`)
+                if (!DEBUG) exec(`rm ./Results/* && rm ./Scans/* && rm ./SearchResults/* && rm ./*.log`, async () => {
+                    await res.redirect(`http://localhost:3000/search?title=${title}&email=${email}`)
+                })
             })
 
 
@@ -580,7 +565,6 @@ const scrape =  async(req, res) => {
         //     //     console.log(result.url)
         //     // }
         // }
-        await res.status(200)
         // await res.send(db_results)
         // await browser.close()
 
@@ -591,6 +575,7 @@ const scrape =  async(req, res) => {
     }
     catch (e) {
         console.log(e)
+        await browser.close()
         await scrape(req, res)
     }
 }
