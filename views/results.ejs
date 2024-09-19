@@ -19,17 +19,19 @@
                         Actions
                     </th>
                 </tr>
-                    <% response.forEach((result) => { %>
+        <% let i = 0 %>
+        <% response.forEach((result) => { %>
 		    
 			<% result = decodeURIComponent(result) %>    
 		    	<tr id="results">
                                 <td>
-                                    <a href="http://<%= result %>"> <%= result %> </a>
+                                    <a id="link-<%=i%>" href="http://<%= result %>"> <%= result %> </a>
                                 </td>
                                 <td>
-                                    <button> Report Not Working</button>
+                                    <button id="button-<%=i%>" onClick="validateLink(`<%=i%>`)"> Report Not Working</button>
                                 </td>
                             </tr>
+                    <% i = i + 1%>
                     <% }) %>
             </table>
         </center>
@@ -37,7 +39,13 @@
  
 
 
-    <!-- <script>
+    <script>
+        async function validateLink(i) {
+            const link = document.querySelector(`#link-${i}`).href
 
-    </script> -->
+            console.log(await fetch(`/checkTitle?link=${link}`))
+
+        }
+
+    </script>
 </html>

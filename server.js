@@ -365,6 +365,17 @@ async function recursivelyFindVideos(directory, files_found, visited_paths=[]) {
     return files_found;
 }
 
+app.get("/checkTitle", async (req, res) => {
+    const {link} = req.query;
+    const title_status = (await fetch(link)).status
+    if (title_status == 200) return res.status(200);
+
+    else if (title_status != 200) {
+        //add code here to search for title and then delete
+        //await client.ft.search('idx:media', `@url:"${link}"`).documents
+    }
+})
+
 
 app.get("/search", async (req, res) => {
     try {
