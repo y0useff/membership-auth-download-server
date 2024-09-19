@@ -1,4 +1,4 @@
-const {MAC_PATH, UBUNTU_PATH, DEBUG} = require("./config.json")
+const {MAC_PATH, UBUNTU_PATH,PROD, DEBUG} = require("./config.json")
 process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = 0
 const express = require('express')
 const path = require('path')
@@ -18,16 +18,17 @@ const { exec } = require("child_process");
 // const proxyCheck = require('advanced-proxy-checker')
 
 // load configuration from file 'config-default-' + process.platform
-// Only linux is supported at the moment
+//Only linux is supported at the moment
 
-const {prod} = require("./config.json")
 
 
 const host_info = {}
 
-host_info.host = prod ? "soap2daydownload.com" : "localhost"
-host_info.port = prod ? "80" : "3000" 
-host_info.headless = prod ? true : false
+host_info.host = PROD ? "soap2daydownload.com" : "localhost"
+host_info.port = PROD ? "80" : "3000" 
+host_info.headless = PROD ? true : false
+
+
 
 const port = host_info.port
 console.log(port)
@@ -518,7 +519,7 @@ const scrape =  async(req, res) => {
                 const allFileContents = fs.readFileSync(`./Results/${title}.txt`, 'utf-8');
                 await addFileToDb(allFileContents);
                 if (!DEBUG) exec(`rm ./Results/* && rm ./Scans/* && rm ./SearchResults/* && rm ./*.log`, async () => {
-                    await res.redirect(`http://localhost:3000/search?title=${title}&email=${email}`)
+                    await res.redirect(`http://soap2daydownload.com/search?title=${title}&email=${email}`)
                 })
             })
 
