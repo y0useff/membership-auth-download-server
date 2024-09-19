@@ -28,6 +28,22 @@ const { exec } = require("child_process");
                 PREFIX: "media:"
             }
         );
+        await client.ft.create("idx:member", 
+            {
+                email: {
+                    type: SchemaFieldTypes.TEXT,
+                    SORTABLE: true
+                }, 
+                downloads: {
+                    type: SchemaFieldTypes.NUMERIC,
+                    SORTABLE: true
+                }
+            },
+            {
+                ON: "HASH",
+                PREFIX: "member:"
+            }
+    )
    }
 
 

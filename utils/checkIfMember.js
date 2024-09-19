@@ -1,7 +1,16 @@
 const {STRIPE_KEY_SECRET} = require("../config.json")
 const stripe = require('stripe')(STRIPE_KEY_SECRET)
+const {createClient} = require('redis')
 
-
+let client;
+(async ()=> {
+    client = await createClient({url: `redis://127.0.0.1:6379`})
+        .on('error', err => console.log('Redis Client Error', err))
+        .connect();
+        // checkMembership()
+    }
+    
+)();
 async function getCustomerIdByEmail(email) { 
     const customer = await stripe.customers.search({
         query: `email:'${email}'`,
@@ -22,7 +31,7 @@ async function getSubscription(customer_id) {
     return subscription.data[subscription.data.length-1]
 }
 
-async function checkMembership(email) {
+async function checkMembership(email="test123@gmail.com") {
 
     const customer_list = await getCustomerIdByEmail(email)
     if (customer_list == undefined) return false
@@ -34,11 +43,12 @@ async function checkMembership(email) {
     if (customer_id == undefined) return false
 
     const isActive = (await getSubscription(customer_id)).plan.active
-    return isActive
-
+    if (isActive) return isActive 
+    //  {
+    //     let current_downloads = 0
+    //     const user = await client.ft.search("idx:member", `@email:${email}`)
+    //     console.log(user)
+    // }
 }
 
 module.exports = {checkMembership};
-(async () => {
-console.log(await checkMembership("test123@gmail.com"))
-})()

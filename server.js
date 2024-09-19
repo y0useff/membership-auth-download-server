@@ -38,7 +38,6 @@ let client;
         .on('error', err => console.log('Redis Client Error', err))
         .connect();
     }
-    
 )();
 // const TwoCaptcha = require("@2captcha/captcha-solver")
 
@@ -59,11 +58,12 @@ app.get('/checkMembership', async (req,res) => {
 
     let {email} = req.query
     const isMember = await checkMembership(email)
+    if (isMember) return res.send('true')
     email = email.replace("@", "(at)")
 
     if (!email) return res.send("no email")
     let member = (await client.ft.search("idx:member", `@email:${email}`))
-    if (member.total != 0) return res.send(member)
+    if (member["total"] != 0) return res.send(member)
 
     let id = await client.hGet("member", "id")
     let key = `member:${id}`
@@ -102,15 +102,15 @@ async function checkCaptcha(wait=false, i, title) {
 
 
     
-    await page.goto(`https://google.com/search?q=${current_search_query}`, {timeout: 7000, waitUntil: 'domcontentloaded'})
+    await page.goto(`https://google.com/search?q=${current_search_query}`, {timeout: 10000, waitUntil: 'domcontentloaded'})
 
     const captcha = (await page.$("#recaptcha"))
     const error = (await page.$$(`div[style="font-size:13px"]`))
     console.log('err: '  + error)
     //const error = (await page.$())
     console.log(captcha)
-
-    if (wait == false && page.url().startsWith("https://google.com/sorry/")) {
+    
+    if ((await page.url()).startsWith("https://www.google.com/sorry/")) {
         await browser.close()
 	    let proxy = await getRandomProxy()
         console.log(proxy)
@@ -137,7 +137,7 @@ async function checkCaptcha(wait=false, i, title) {
         await timeout(2000)
         console.log("clicked")
 
-        return await page.waitForSelector("#searchform", {timeout: 180000})
+        return await page.waitForSelector("#searchform", {timeout: 10000})
     }
 
 
@@ -151,7 +151,7 @@ async function getResults(start=0, redirect=false) {
     if (start >= 20) return search_results;
     if (redirect==true) {
         console.log('redirecting')
-        await page.goto(`https://google.com/search?q=${current_search_query}&start=${start}`,{timeout: 7000, waitUntil: 'domcontentloaded'})
+        await page.goto(`https://google.com/search?q=${current_search_query}&start=${start}`,{timeout: 10000, waitUntil: 'domcontentloaded'})
             .catch((err) => {
                 console.log('navigation error, likely proxy slow')
             })
@@ -163,7 +163,7 @@ async function getResults(start=0, redirect=false) {
         return search_results
     }
 
-    const isResultsFound = await page.waitForSelector("h3", {timeout: 60000})
+    const isResultsFound = await page.waitForSelector("h3", {timeout: 10000})
     console.log(`isResultsFound var: ${isResultsFound}`)
     let page_results = []
     if (isResultsFound != null) {
@@ -370,7 +370,18 @@ app.get("/search", async (req, res) => {
     try {
         const {title, email} = req.query
         if (!title) return;
-        if (await checkMembership(email) != true)  return res.send("Please purchase a membership to download!")
+        if (await checkMembership(email) != true) {
+            const member = JSON.parse(await (await fetch(`http://localhost:3000/checkMembership?email=${email}`)).text())
+            if (member.documents.length > 1) return res.send("Error! Multiple emails found in database, contact support for assistance")
+            const member_id = member.documents[0].id
+            let downloads = parseInt(member.documents[0].value.downloads)
+            
+            if (downloads >= 3) return res.send("You are out of free movies to downloads! Please purchase a membership at https://soap2daymovies.app to continue!")
+            else {
+                downloads = downloads + 1
+                await client.hSet(member_id, "downloads", downloads)
+            }
+        }
         console.log(title)
         const response = await client.ft.search("idx:media", `%${title}%`)
         let results = []
@@ -393,8 +404,18 @@ app.get("/download", async (req, res) => {
     try {
 
         const {title, email} = req.query
-        if (await checkMembership(email) != true)  return res.send("Please purchase a membership to download!")
-
+        if (await checkMembership(email) != true) {
+            const member = JSON.parse(await (await fetch(`http://localhost:3000/checkMembership?email=${email}`)).text())
+            if (member.documents.length > 1) return res.send("Error! Multiple emails found in database, contact support for assistance")
+            const member_id = member.documents[0].id
+            let downloads = parseInt(member.documents[0].value.downloads)
+            
+            if (downloads >= 3) return res.send("You are out of free movies to downloads! Please purchase a membership at https://soap2daymovies.app to continue!")
+            // else {
+            //     // downloads = downloads + 1
+            //     // await client.hSet(member_id, "downloads", downloads)
+            // }
+        }
         const initial_search_results = (await client.ft.search("idx:media", title)).documents
         if (initial_search_results.length == 0) {
             await res.render("waiting", {
@@ -517,9 +538,7 @@ const scrape =  async(req, res) => {
                 console.log(`Wrote to ./Results/${title}.txt!`)
                 const allFileContents = fs.readFileSync(`./Results/${title}.txt`, 'utf-8');
                 await addFileToDb(allFileContents);
-                if (!DEBUG) exec(`rm ./Results/* && rm ./Scans/* && rm ./SearchResults/* && rm ./*.log`, async () => {
-                    await res.redirect(`http://localhost:3000/search?title=${title}&email=${email}`)
-                })
+                if (!DEBUG) exec(`rm ./Results/* && rm ./Scans/* && rm ./SearchResults/* && rm ./*.log`)
             })
 
 
