@@ -365,15 +365,38 @@ async function recursivelyFindVideos(directory, files_found, visited_paths=[]) {
     return files_found;
 }
 
+async function removeLink(url) {
+    url = url.split("//")[1]
+    const results = (await client.ft.search('idx:media', `@url:"${url}"`))
+    if (results.total != 0) {
+        results.documents.forEach(async result => {
+            const id = result.id
+            await client.hDel(id, "url")
+            await client.hDel(id, "name")
+
+            console.log('deleted media')
+        })
+    }
+}
+
 app.get("/checkTitle", async (req, res) => {
     const {link} = req.query;
-    const title_status = (await fetch(link)).status
-    if (title_status == 200) return res.status(200);
+    fetch(link)
+        .then(body => {
+            if (body.status == 200) return res.status(200);
+            else if (title_status != 200) {
+                removeLink(link)
+                return res.status(400)
+                //add code here to search for title and then delete
+                //await client.ft.search('idx:media', `@url:"${link}"`).documents
+            }
+        })
+        .catch(err => {
+            removeLink(link)
+            return res.status(400)
+        })
 
-    else if (title_status != 200) {
-        //add code here to search for title and then delete
-        //await client.ft.search('idx:media', `@url:"${link}"`).documents
-    }
+
 })
 
 
