@@ -383,7 +383,9 @@ app.get("/search", async (req, res) => {
             }
         }
         console.log(title)
-        const response = await client.ft.search("idx:media", `%${title}%`)
+        let response;
+        if (title.includes(" ")) response = await client.ft.search("idx:media", `${title}`)
+        else response = await client.ft.search("idx:media", `%${title}%`)
         let results = []
         for (let result of response.documents) {
             results.push(result.value.url)
