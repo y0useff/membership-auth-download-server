@@ -419,7 +419,7 @@ app.get("/download", async (req, res) => {
             // }
         }
         const initial_search_results = (await client.ft.search("idx:media", title)).documents
-        if (initial_search_results.length == 0) {
+        if (initial_search_results.length < 5) {
             await res.render("waiting", {
                 parameters: req.query
             })
