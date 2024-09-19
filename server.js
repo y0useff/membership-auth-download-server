@@ -215,8 +215,6 @@ async function searchGoogle(title, i) {
     //         })
     //     },result_map)
     // }
-
-
 }
 
 
@@ -381,7 +379,8 @@ app.get("/search", async (req, res) => {
         }
         console.log(results)
         await res.render("results", {
-            response: results
+            response: results,
+            email: email
         })
 
     }
@@ -505,7 +504,7 @@ const scrape =  async(req, res) => {
         uniq = [...new Set(final_json)];
 
         await fs.writeFileSync(`./SearchResults/${title}.json`, JSON.stringify(uniq))
-        exec(`java -jar ParallelODD.jar "./SearchResults/${title}.json" "./OpenDirectoryDownloader/OpenDirectoryDownloader"`, (error, stdout, stderr) => {
+        exec(`java -jar ParallelODD.jar "./SearchResults/${title}.json" "./OpenDirectoryDownloader-3.1.0.1-osx-x64 (2)/OpenDirectoryDownloader"`, (error, stdout, stderr) => {
             if (error) {
                 console.log(`error: ${error.message}`);
                 return;
@@ -519,7 +518,7 @@ const scrape =  async(req, res) => {
                 const allFileContents = fs.readFileSync(`./Results/${title}.txt`, 'utf-8');
                 await addFileToDb(allFileContents);
                 if (!DEBUG) exec(`rm ./Results/* && rm ./Scans/* && rm ./SearchResults/* && rm ./*.log`, async () => {
-                    await res.redirect(`http://soap2daydownload.com/search?title=${title}&email=${email}`)
+                    await res.redirect(`http://localhost:3000/search?title=${title}&email=${email}`)
                 })
             })
 
