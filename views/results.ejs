@@ -42,8 +42,20 @@
     <script>
         async function validateLink(i) {
             const link = document.querySelector(`#link-${i}`).href
+            console.log(link)
 
-            console.log((await fetch(`/checkTitle?link=${link}`)).status)
+            fetch(`http://localhost:3000/checkTitle?link=${link}`)
+                .then(res => {
+                    //do nothing
+                    if (res.status != 200) {
+                        alert("Deleted media!")
+                        return window.location.reload();
+                    }
+                })
+                .catch(err => {
+                    alert("Deleted media!")
+                    return window.location.reload();
+                })
 
         }
 

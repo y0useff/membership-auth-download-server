@@ -366,34 +366,42 @@ async function recursivelyFindVideos(directory, files_found, visited_paths=[]) {
 }
 
 async function removeLink(url) {
-    url = url.split("//")[1]
-    const results = (await client.ft.search('idx:media', `@url:"${url}"`))
-    if (results.total != 0) {
-        results.documents.forEach(async result => {
-            const id = result.id
-            await client.hDel(id, "url")
-            await client.hDel(id, "name")
-
-            console.log('deleted media')
-        })
+    try {
+        url = url.split("//")[1]
+        console.log(url)
+        const results = (await client.ft.search('idx:media', `@url:"${url}"`))
+        if (results.total != 0) {
+            results.documents.forEach(async result => {
+                const id = result.id
+                await client.hDel(id, "url")
+                await client.hDel(id, "name")
+    
+                console.log('deleted media')
+            })
+        }
+    } catch {
+        console.log("An error occured removing this media from the database.")
     }
+ 
+    
 }
 
 app.get("/checkTitle", async (req, res) => {
     const {link} = req.query;
     fetch(link)
-        .then(body => {
-            if (body.status == 200) return res.status(200);
-            else if (title_status != 200) {
+        .then(async body => {
+            console.log(body)
+            if (body.status == 200) return await res.sendStatus(200);
+            else {
                 removeLink(link)
-                return res.status(400)
+                return await res.sendStatus(400)
                 //add code here to search for title and then delete
                 //await client.ft.search('idx:media', `@url:"${link}"`).documents
             }
         })
-        .catch(err => {
+        .catch(async err => {
             removeLink(link)
-            return res.status(400)
+            return await res.sendStatus(400)
         })
 
 
