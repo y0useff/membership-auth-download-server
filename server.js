@@ -413,7 +413,7 @@ app.get("/search", async (req, res) => {
         const {title, email} = req.query
         if (!title) return;
         if (await checkMembership(email) != true) {
-            const member = JSON.parse(await (await fetch(`http://localhost:3000/checkMembership?email=${email}`)).text())
+            const member = JSON.parse(await (await fetch(`http://soap2daydownload.com/checkMembership?email=${email}`)).text())
             if (member.documents.length > 1) return res.send("Error! Multiple emails found in database, contact support for assistance")
             const member_id = member.documents[0].id
             let downloads = parseInt(member.documents[0].value.downloads)
@@ -449,7 +449,7 @@ app.get("/download", async (req, res) => {
 
         const {title, email} = req.query
         if (await checkMembership(email) != true) {
-            const member = JSON.parse(await (await fetch(`http://localhost:3000/checkMembership?email=${email}`)).text())
+            const member = JSON.parse(await (await fetch(`http://soap2daydownload.com/checkMembership?email=${email}`)).text())
             if (member.documents.length > 1) return res.send("Error! Multiple emails found in database, contact support for assistance")
             const member_id = member.documents[0].id
             let downloads = parseInt(member.documents[0].value.downloads)
@@ -569,7 +569,7 @@ const scrape =  async(req, res) => {
         uniq = [...new Set(final_json)];
 
         await fs.writeFileSync(`./SearchResults/${title}.json`, JSON.stringify(uniq))
-        exec(`java -jar ParallelODD.jar "./SearchResults/${title}.json" "./OpenDirectoryDownloader-3.1.0.1-osx-x64 (2)/OpenDirectoryDownloader"`, (error, stdout, stderr) => {
+        exec(`java -jar ParallelODD.jar "./SearchResults/${title}.json" "OpenDirectoryDownloader/OpenDirectoryDownloader"`, (error, stdout, stderr) => {
             if (error) {
                 console.log(`error: ${error.message}`);
                 return;
