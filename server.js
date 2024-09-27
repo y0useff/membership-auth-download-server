@@ -37,12 +37,14 @@ let client;
     client = await createClient({url: `redis://127.0.0.1:6379`})
         .on('error', err => console.log('Redis Client Error', err))
         .connect();
+
+
     }
 )();
 // const TwoCaptcha = require("@2captcha/captcha-solver")
 
 
-const videoExtensions = ["webm", "mkv", "flv", "vob", "ogv", "ogg", "rrc", "gifv", "mng", "mov", "avi", "qt", "wmv", "yuv", "rm", "asf", "amv", "mp4", "m4p", "m4v", "mpg", "mp2", "mpeg", "mpe", "mpv", "m4v", "svi", "3gp", "3g2", "mxf", "roq", "nsv", "flv", "f4v", "f4p", "f4a", "f4b", "mod"]
+const videoExtensions = ["zip", "torrent","webm", "mkv", "flv", "vob", "ogv", "ogg", "rrc", "gifv", "mng", "mov", "avi", "qt", "wmv", "yuv", "rm", "asf", "amv", "mp4", "m4p", "m4v", "mpg", "mp2", "mpeg", "mpe", "mpv", "m4v", "svi", "3gp", "3g2", "mxf", "roq", "nsv", "flv", "f4v", "f4p", "f4a", "f4b", "mod"]
 
 
 
@@ -95,7 +97,9 @@ async function checkCaptcha(wait=false, i, title) {
         `intext:"${title}" (avi|mkv|mov|mp4|mpg|wmv) -inurl:(jsp|pl|php|html|aspx|htm|cf|shtml) intitle:"index.of./"`,
          `-inurl:htm -inurl:html intitle:"index of" (avi|mp4|mkv|mov|wmv) "${title}"`
     ]
-    query = `intitle:"index of" (avi|mp4|mkv|webm|mv4|wmv|mpg|mov) "${title}" -inurl:(htm|html|php|jsp|pl|aspx|cf|shtml) intext:"${title}"`     //custom gpt generated dork combining
+    // query = `intitle:"index of" (avi|mp4|mkv|webm|mv4|wmv|mpg|mov) "${title}" -inurl:(htm|html|php|jsp|pl|aspx|cf|shtml) intext:"${title}"`     //custom gpt generated dork combining
+
+    query = `-inurl:htm -inurl:html intitle:"index of" (avi|mp4|mkv) "${title}"`
 
     current_search_query = query;
     await timeout(2000)
@@ -261,54 +265,118 @@ async function scanDirectory(directory, files_found) {
       
     return files_found
 }
+function redisReplace(value) {
+    const replacements = {
+        ',': '\\,', 
+        '.': '\\.',
+        '<': '\\<',
+        '>': '\\>',
+        '{': '\\{',
+        '}': '\\}',
+        '[': '\\[',
+        ']': '\\]',
+        '"': '\\"',
+        "'": "\\'",
+        ':': '\\:',
+        ';': '\\;',
+        '!': '\\!',
+        '@': '\\@',
+        '#': '\\#',
+        '$': '\\$',
+        '%': '\\%',
+        '^': '\\^',
+        '&': '\\&',
+        '*': '\\*',
+        '(': '\\(',
+        ')': '\\)',
+        '-': '\\-',
+        '+': '\\+',
+        '=': '\\=',
+        '~': '\\~',
+    }
+    
+    const newValue = value.replace(/,|\.|<|>|\{|\}|\[|\]|"|'|:|;|!|@|#|\$|%|\^|&|\*|\(|\)|-|\+|=|~/g, function(x) {
+            return replacements[x]
+    })
+    return newValue
+    }
+
+
 
 async function addFileToDb(file) {
-    try {
-        const line_arr = file.split("\n")
-        for (let line of line_arr){
-            const file_name = line.split("://")[1]
-            console.log(file_name)
-            if (!(file_name == undefined)) {
-                let l_no_space = file_name.replace(" ", "")
-    
-                const extension = re.exec(l_no_space)[1]
-                if (videoExtensions.includes(extension)) {
-                    let path = file_name
-                    const path_space = path.replace(/[^a-zA-Z0-9]/g, ' ');
-                    console.log(`url: ${path}`)
-
-                    if (((await client.ft.search('idx:media', `@name:"${path_space}"`)).documents).length == 0) {
+    const line_arr = file.split("\n")
+    console.log(line_arr)
+    fs.writeFileSync("DEVFFFF.json", JSON.stringify(line_arr))
+    for (let path of line_arr) {
+        const escaped_path = redisReplace(path)
+        const path_no_sym = path.replace(/[^a-zA-Z0-9]/g, ' ');
+        const extension = re.exec(path.replace(" ", ""))[1]
+        
+        if (videoExtensions.includes(extension)) {
+            if ( (await client.ft.search('idx:media', `@name:${path_no_sym}`)).documents.length == 0 ) {
                         let id = await client.hGet("media", "id")
                         let key = `media:${id}`
 
-                        await client.hSet(key, "name", path_space)
-                        path = encodeURIComponent(path)
-                        await client.hSet(key, "url", path)
+                        await client.hSet(key, "name", path_no_sym)
+                        await client.hSet(key, "url", escaped_path)
                 
                         console.log(`key - ${key}`)
                 
                         await client.hIncrBy("media", "id", 1)
-                
-                        // let key = `media_urls:${await client.get("media_key")}`
-                        // console.log(`id: ${key}`)
-                        // await client.hSet(key, "url", path)
-                        // await client.HINCRBY(key)
+
                         console.log("Added media url to database")
-                    }
-                    else {
-                        console.log("media already in db!")
-                    }
-                }
-            }  
-        };
-        
-    } catch (err) {
-        console.log(`err adding ${path}`)
-        console.log(err)
+            }
+            else {
+                console.log("media already in db!")
+            }
+        }
     }
-
-
 }
+    // try {
+    //     const line_arr = file.split("\n")
+    //     for (let line of line_arr){
+    //         const file_name = line.split("://")[1]
+    //         if (!(file_name == undefined)) {
+    //             let l_no_space = file_name.replace(" ", "")
+    
+    //             const extension = re.exec(l_no_space)[1]
+    //             if (videoExtensions.includes(extension)) {
+    //                 let path = line
+    //                 const path_space = path.replace(/[^a-zA-Z0-9]/g, ' ');
+    //                 console.log(`url: ${path}`)
+
+    //                 if (((await client.ft.search('idx:media', `@name:"${path_space}"`)).documents).length == 0) {
+    //                     let id = await client.hGet("media", "id")
+    //                     let key = `media:${id}`
+
+    //                     await client.hSet(key, "name", path_space)
+    //                     path = encodeURIComponent(path)
+    //                     await client.hSet(key, "url", path)
+                
+    //                     console.log(`key - ${key}`)
+                
+    //                     await client.hIncrBy("media", "id", 1)
+                
+    //                     // let key = `media_urls:${await client.get("media_key")}`
+    //                     // console.log(`id: ${key}`)
+    //                     // await client.hSet(key, "url", path)
+    //                     // await client.HINCRBY(key)
+    //                     console.log("Added media url to database")
+    //                 }
+    //                 else {
+    //                     console.log("media already in db!")
+    //                 }
+    //             }
+    //         }  
+    //     };
+        
+    // } catch (err) {
+    //     console.log(`err adding ${path}`)
+    //     console.log(err)
+    // }
+
+
+
 
 async function recursivelyFindVideos(directory, files_found, visited_paths=[]) {
     try {
@@ -335,7 +403,6 @@ async function recursivelyFindVideos(directory, files_found, visited_paths=[]) {
                 const sub_dir = dir.getAttribute('href');
                 if (!(sub_dir === "." || sub_dir === ".." || sub_dir === "/" || sub_dir === "../" || sub_dir === "Parent Directory/" || sub_dir === undefined)) {
                     let path = `${directory}${sub_dir}`
-                    console.log(path)
                     results_found_since_site_visit += 1;
                     if (!(visited_paths.includes(path))) {
                         let extension = re.exec(sub_dir)[1];
@@ -355,6 +422,8 @@ async function recursivelyFindVideos(directory, files_found, visited_paths=[]) {
 
                 }
             }
+
+            
         }
     // }
         
@@ -362,13 +431,12 @@ async function recursivelyFindVideos(directory, files_found, visited_paths=[]) {
         console.log(`Error fetching ${directory}:`, err);
     }
     
-    return files_found;
 }
 
 async function removeLink(url) {
     try {
-        url = url.split("//")[1]
-        console.log(url)
+
+        url = redisReplace(url)
         const results = (await client.ft.search('idx:media', `@url:"${url}"`))
         if (results.total != 0) {
             results.documents.forEach(async result => {
@@ -426,18 +494,25 @@ app.get("/search", async (req, res) => {
         }
         console.log(title)
         let response;
-        if (title.includes(" ")) response = await client.ft.search("idx:media", `${title}`)
-        else response = await client.ft.search("idx:media", `%${title}%`)
+
+        response = await client.sendCommand(["FT.SEARCH", "idx:media", `%${title}%`, "LIMIT", "0", "10000"])
+
         let results = []
-        for (let result of response.documents) {
-            results.push(result.value.url)
+        for (element of response) {
+            if (Array.isArray(element)) {
+                results.push(element[element.length-1])
+            }
         }
+
+        // let results = []
+        // for (let result of response.documents) {
+        //     results.push(result.value.url)
+        // }
         console.log(results)
         await res.render("results", {
             response: results,
             email: email
         })
-
     }
     catch (err) {
         console.log(err)
@@ -539,16 +614,34 @@ const launchPageWithProxy = async (proxy=`rp.proxyscrape.com:6060`) => {
     });
   }
 
+app.get("/addFile", async (req, res) => {
+    console.log("complete")
+    const {title} = req.query
+    exec(`cat ./Scans/* > "./Results/${title}.txt"`, async (error, stdout, stderr) => {
+        const allFileContents = fs.readFileSync(`./Results/${title}.txt`, 'utf-8');
+        await addFileToDb(allFileContents);
+        if (DEBUG == false) exec(`rm ./Results/* && rm ./Scans/* && rm ./SearchResults/* && rm ./*.log`)
+            res.send(200)
+    })
 
+})
+
+//   console.log('complete')
+//   exec(`cat ./Scans/* > "./Results/${title}.txt"`, async (error, stdout, stderr) => {
+//       const allFileContents = fs.readFileSync(`./Results/${title}.txt`, 'utf-8');
+//       await addFileToDb(allFileContents);
+//       if (DEBUG == false) exec(`rm ./Results/* && rm ./Scans/* && rm ./SearchResults/* && rm ./*.log`)
+//   })
 
 //todo
 //add queue to scrape functionality, maybe use awaits so only one scraping task is done at
 const scrape =  async(req, res) => {
+    const {title, email} = req.query
+
     try {
         
         await launchPageWithProxy(await getRandomProxy())//;
 
-        const {title, email} = req.query
         console.log(`ttttt + ` + title)
         let response = await searchGoogle(title, 0)
         // for (let i = 0; i <= 5; i++) {
@@ -569,7 +662,7 @@ const scrape =  async(req, res) => {
         uniq = [...new Set(final_json)];
 
         await fs.writeFileSync(`./SearchResults/${title}.json`, JSON.stringify(uniq))
-        exec(`java -jar ParallelODD.jar "./SearchResults/${title}.json" "OpenDirectoryDownloader/OpenDirectoryDownloader"`, (error, stdout, stderr) => {
+        exec(`java -jar ParallelODD.jar "./SearchResults/${title}.json" "OpenDirectoryDownloader/OpenDirectoryDownloader"`, async (error, stdout, stderr) => {
             if (error) {
                 console.log(`error: ${error.message}`);
                 return;
@@ -578,19 +671,66 @@ const scrape =  async(req, res) => {
                 console.log(`stderr: ${stderr}`);
                 return;
             }
-            exec(`cat ./Scans/* > "./Results/${title}.txt"`, async (error, stdout, stderr) => {
-                console.log(`Wrote to ./Results/${title}.txt!`)
-                const allFileContents = fs.readFileSync(`./Results/${title}.txt`, 'utf-8');
-                await addFileToDb(allFileContents);
-                if (!DEBUG) exec(`rm ./Results/* && rm ./Scans/* && rm ./SearchResults/* && rm ./*.log`)
-            })
+
+            const scans = fs.readdirSync("./Scans")
+
+            for (let scan of scans) {
+                console.log(scan)
+                const data = fs.readFileSync(`./Scans/${scan}`,{ encoding: 'utf8', flag: 'r' })
+                const f = data.split("\n")
+                if (f.length <= 3) {
+                    console.log("rewriting")
+                    fs.writeFileSync(`./Scans/${scan}`, "")
+
+                    let files = []
+                    await recursivelyFindVideos(f[0], files)
+
+                    let scan_file;
+                    for (let file of files) {
+                        scan_file = scan_file + file + "\n"
+                    }
+
+                    fs.writeFileSync(`./Scans/${scan}`, scan_file)
+                }
+            }
+            // await new Promise((resolve, reject) => {
+
+
+                
+            //     scans.forEach(async (file, index) => { 
+            //         const data = fs.readFileSync(`./Scans/${file}`,{ encoding: 'utf8', flag: 'r' })
+            //         const f = data.split("\n")
+            //         console.log(f.length)
+            //         if (f.length <= 3) {
+            //             console.log("rewriting")
+            //             fs.writeFileSync(`./Scans/${file}`, "")
+    
+            //             let files = []
+            //             await recursivelyFindVideos(f[0], files)
+    
+            //             let scan_file;
+            //             for (let file of files) {
+            //                 scan_file = scan_file + file + "\n"
+            //             }
+    
+            //             fs.writeFileSync(`./Scans/${file}`, scan_file)
+            //         }
+            //     })
+
+            // })
+
+            
+            //for (let file of scans) console.log(file)
+
+
+            
+
 
 
             //add function call to filter every line in ./merged-file.txt to only videos
             //add videos to database
             //return search
         });
-        console.log('complete')
         // res.send(JSON.stringify(uniq))
         // const response = await searchGoogle(title)
         // console.log(response)
@@ -640,6 +780,8 @@ const scrape =  async(req, res) => {
         console.log(e)
         await browser.close()
         await scrape(req, res)
+    } finally {
+
     }
 }
 

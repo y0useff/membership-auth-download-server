@@ -5,7 +5,7 @@
         <h1>
             <h1>Searching for <span id="title"><%=parameters.title%></span></h1>
             <%let title = parameters.title%>
-            <%fetch(`http://soap2daydownload.com/scrape?title=${title}`)%>
+            <%fetch(`http://localhost:3000/scrape?title=${title}`)%>
             We are gathering results from all over the internet. Please wait 
             <span id="seconds"> 120 </span>
             seconds while we grab them for you. Please do not refresh the page.
@@ -27,11 +27,19 @@
 
         let timer = setInterval(() => {
             let seconds = document.querySelector("#seconds").textContent
+
+            if (seconds == 60) {
+                console.log (`fetching http://localhost:3000/addFile?title=${document.querySelector("#title").textContent}`)
+                fetch(`http://localhost:3000/addFile?title=${document.querySelector("#title").textContent}`)
+            }
             document.querySelector("#seconds").textContent = seconds - 1
             if (seconds == 1) {
                 clearInterval(timer)
             } 
         },1000)
+
+        setTimeout(() => {
+        },100000);
 
         setTimeout(() => {
             
@@ -44,7 +52,7 @@
                 if (parameter.startsWith("title")) title = parameter.split("=")[1]
             })
 
-            window.location.href = `http://soap2daydownload.com/search?title=${title}&email=${email}`
+            window.location.href = `http://localhost:3000/search?title=${title}&email=${email}`
 
         },120000)
             
