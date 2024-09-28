@@ -11125,3 +11125,232 @@ Total HTTP requests: 29, Total HTTP traffic: 28.47 kiB
 2024-09-27 18:22:01.187 -04:00 [INF] Logged sessions stats
 2024-09-27 18:22:01.188 -04:00 [INF] Finished indexing!
 2024-09-27 18:22:01.190 -04:00 [INF] Exiting...
+2024-09-27 19:08:06.049 -04:00 [INF] Started with PID 78504
+2024-09-27 19:08:06.708 -04:00 [WRN] Console input is redire2024-09-27 19:08:06.931 -04:00 [WRN] Console input is redire2024-09-27 19:08:07.112 -04:00 [WRN] Console input is redirect, maybe it is run inside another host. This could mean that no input will be send/processed.
+2024-09-27 19:08:07.149 -04:00 [DBG] [P01] Start
+2024-09-27 19:08:07.152 -04:00 [INF] [P01] Begin processing http://users.uoa.gr/~sph0800108/diafora/?C=N;O=D
+2024-09-27 19:08:07.153 -04:00 [DBG] [P01] Start download 'http://users.uoa.gr/~sph0800108/diaf2024-09-27 19:2024-09-27 19:08:07.231 -04:00 [DBG] [P02] Start
+2024-09-27 19:08:07.232 -04:00 [DBG] [P03] Start
+2024-09-27 19:08:07.232 -04:00 [DBG] [P04] Start
+2024-09-27 19:08:07.232 -04:00 [DBG] [P05] Start
+2024-09-27 19:08:07.232 -04:00 [DBG] [P06] Start
+2024-09-27 19:08:07.232 -04:00 [DBG] [P07] Start
+2024-09-27 19:08:07.232 -04:00 [DBG] [P08] Start
+2024-09-27 19:08:07.232 -04:00 [DBG] [P09] Start
+2024-09-27 19:08:07.232 -04:00 [DBG] [P10] Start
+2024-09-27 19:08:07.234 -04:00 [DBG] [P01] Start
+2024-09-27 19:08:07.234 -04:00 [DBG] [P02] Start
+2024-09-27 19:08:07.234 -04:00 [DBG] [P03] Start
+2024-09-27 19:08:07.234 -04:00 [DBG] [P04] Start
+2024-09-27 19:08:07.234 -04:00 [DBG] [P05] Start
+2024-09-27 19:08:07.234 -04:00 [DBG] [P06] Start
+2024-09-27 19:08:07.234 -04:00 [DBG] [P07] Start
+2024-09-27 19:08:07.234 -04:00 [DBG] [P08] St2024-09-27 19:08:09.075 -04:00 [DBG] [P01] Finish download [HTTP "OK"] 'https://www.film2serial.ir/wp-content/uploads/2018/12/?SA', size: 379.17 kiB
+2024-09-27 19:08:10.217 -04:00 [INF] [P01] Finished processing https://www.film2serial.ir/wp-content/uploads/2018/12/?SA
+2024-09-27 19:08:10.217 -04:00 [DBG] [P01] Finished
+2024-09-27 19:08:11.053 -04:00 [DBG] [P02] Finished
+2024-09-27 19:08:11.067 -04:00 [DBG] [P09] Finished
+2024-09-27 19:08:11.067 -04:00 [DBG] [P06] Finished
+2024-09-27 19:08:11.067 -04:00 [DBG] [P05] Finished
+2024-09-27 19:08:11.067 -04:00 [DBG] [P04] Fi2024-09-27 19:08:11.279 -04:00 [INF] [P01] Finished processing https://archive.ph/2018.10.28-042545/http://dl8.heyserver.in/film/2018-10/
+2024-09-27 19:08:11.279 -04:00 [DBG] [P01] Finished
+2024-09-27 19:08:11.995 -04:00 [DBG] [P10] Finished
+2024-09-27 19:08:11.995 -04:00 [DBG] [P08] Finished
+2024-09-27 19:08:11.996 -04:00 [DBG] [P02] Finished
+2024-09-27 19:08:11.996 -04:00 [DBG] [P05] Finished
+2024-09-27 19:08:11.995 -04:00 [DBG] [P06] Finished
+2024-09-27 19:08:11.997 -04:00 [DBG] [P04] Finished
+2024-09-27 19:08:11.997 -04:00 [DBG] [P07] Finished
+2024-09-27 19:08:11.997 -04:00 [DBG] [P09] Finished
+2024-09-27 19:08:11.999 -04:00 [DBG] [P03] Finished
+2024-09-27 19:08:12.000 -04:00 [INF] Finshed indexing
+2024-09-27 19:08:12.999 -04:00 [DBG] [P01] Finished
+2024-09-27 19:08:13.000 -04:00 [DBG] [P03] Finished
+2024-09-27 19:08:13.001 -04:00 [DBG] [P04] Finished
+2024-09-27 19:08:13.001 -04:00 [DBG] [P09] Finished
+2024-09-27 19:08:13.001 -04:00 [DBG] [P02] Finished
+2024-09-27 19:08:13.001 -04:00 [DBG] [P05] Finished
+2024-09-27 19:08:13.000 -04:00 [DBG] [P10] Finished
+2024-09-27 19:08:13.000 -04:00 [DBG] [P06] Finished
+2024-09-27 19:08:13.000 -04:00 [DBG] [P08] Finished
+2024-09-27 19:08:13.001 -04:00 [DBG] [P07] Finished
+2024-09-27 19:08:13.047 -04:00 [INF] Saving URL list to file..
+2024-09-27 19:08:13.062 -04:00 [INF] Saved URL list to file: /home/y0usef/Desktop/Programming/freelance/upwork/clients/greg-s/membership-auth-download-server/Scans/https:__archive.ph_2018.10.28-042545_http:__dl8.heyserver.in_film_2018-10_.txt
+2024-09-27 19:08:13.063 -04:00 [WRN] Speedtest skipped because of general service or disabled through command line
+2024-09-27 19:08:13.063 -04:00 [INF] Logging sessions stats..
+2024-09-27 19:08:13.063 -04:00 [INF] Http status codes
+200: 1
+Total files: 1, Total estimated size: n/a
+Total directories: 1
+Total HTTP requests: 1, Total HTTP traffic: 154.94 kiB
+|**Url:** [https://archive.ph/2018.10.28-042545/h...](https://archive.ph/2018.10.28-042545/http://dl8.heyserver.in/film/2018-10/)|||
+|:-|-:|-:|
+|**Extension (Top 5)**|**Files**|**Size**|
+||1|n/a|
+|**Dirs:** 1 **Ext:** 1|**Total:** 1|**Total:** n/a|
+|**Date (UTC):** 2024-09-27 23:08:06|**Time:** 00:00:06||
+
+^(Created by [KoalaBear84's OpenDirectory Indexer v3.1.0.1](https://github.com/KoalaBear84/OpenDirectoryDownloader/))
+
+2024-09-27 19:08:13.063 -04:00 [INF] Logged sessions stats
+2024-09-27 19:08:13.063 -04:00 [INF] Finished indexing!
+2024-09-27 19:08:13.064 -04:00 [INF] Exiting...
+254/4A_TB/Others Language Movie/A Muse (2012) BluRay 720p [Ganool] - [Esub]'
+2024-09-27 19:08:09.260 -04:00 [DBG] [P01] Finish download [HTTP "OK"] 'https://www.mmnt.net/db/0/0/114.130.39.254/4A_TB/Others Language Movie/11.6 (2013) Bluray ~ tRaNc3', size: 3.23 kiB
+2024-09-27 19:08:09.294 -04:00 [WRN] No directories and files found on https://www.mmnt.net/db/0/0/114.130.39.254/4A_TB/Others Language Movie/11.6 (2013) Bluray ~ tRaNc3, but did find <iframe> tag(s), you could try this url(s):
+https://www.mmnt.net/form.html
+2024-09-27 19:08:09.295 -04:00 [INF] [P01] Finished processing https://www.mmnt.net/db/0/0/114.130.39.254/4A_TB/Others Language Movie/11.6 (2013) Bluray ~ tRaNc3
+2024-09-27 19:08:09.417 -04:00 [DBG] [P02] Finish download [HTTP "OK"] 'https://www.mmnt.net/db/0/0/114.130.39.254/4A_TB/Others Language Movie/17 AGAIN', size: 2.66 kiB
+2024-09-27 19:08:09.426 -04:00 [WRN] No directories and files found on https://www.mmnt.net/db/0/0/114.130.39.254/4A_TB/Others Language Movie/17 AGAIN, but did find <iframe> tag(s), you could try this url(s):
+https://www.mmnt.net/form.html
+2024-09-27 19:08:09.427 -04:00 [INF] [P02] Finished processing https://www.mmnt.net/db/0/0/114.130.39.254/4A_TB/Others Language Movie/17 AGAIN/
+2024-09-27 19:08:09.571 -04:00 [DBG] [P03] Finish download [HTTP "OK"] 'https://www.mmnt.net/db/0/0/114.130.39.254/4A_TB/Others Language Movie/22 Bullets (2010) BluRay 720p [Ganool] - [Esub]', size: 3.21 kiB
+2024-09-27 19:08:09.575 -04:00 [WRN] No directories and files found on https://www.mmnt.net/db/0/0/114.130.39.254/4A_TB/Others Language Movie/22 Bullets (2010) BluRay 720p [Ganool] - [Esub], but did find <iframe> tag(s), you could try this url(s):
+https://www.mmnt.net/form.html
+2024-09-27 19:08:09.576 -04:00 [INF] [P03] Finished processing https://www.mmnt.net/db/0/0/114.130.39.254/4A_TB/Others Language Movie/22 Bullets (2010) BluRay 720p [Ganool] - [Esub]/
+2024-09-27 19:08:09.581 -04:00 [DBG] [P06] Finish download [HTTP "OK"] 'https://www.mmnt.net/db/0/0/114.130.39.254/4A_TB/Others Language Movie/A Cat in Paris', size: 3.08 kiB
+2024-09-27 19:08:09.586 -04:00 [DBG] [P04] Finish download [HTTP "OK"] 'https://www.mmnt.net/db/0/0/114.130.39.254/4A_TB/Others Language Movie/A Beautiful Mind (2001)', size: 3.35 kiB
+2024-09-27 19:08:09.589 -04:00 [DBG] [P05] Finish download [HTTP "OK"] 'https://www.mmnt.net/db/0/0/114.130.39.254/4A_TB/Others Language Movie/A Bug's Life 1998 BRRip 720p [Dual-Audio][Eng-Hindi]~Vikram & Rahul', size: 3.09 kiB
+2024-09-27 19:08:09.593 -04:00 [WRN] No directories and files found on https://www.mmnt.net/db/0/0/114.130.39.254/4A_TB/Others Language Movie/A Cat in Paris, but did find <iframe> tag(s), you could try this url(s):
+https://www.mmnt.net/form.html
+2024-09-27 19:08:09.593 -04:00 [INF] [P06] Finished processing https://www.mmnt.net/db/0/0/114.130.39.254/4A_TB/Others Language Movie/A Cat in Paris/
+2024-09-27 19:08:09.595 -04:00 [INF] [P04] Finished processing https://www.mmnt.net/db/0/0/114.130.39.254/4A_TB/Others Language Movie/A Beautiful Mind (2001)/
+2024-09-27 19:08:09.595 -04:00 [WRN] No directories and files found on https://www.mmnt.net/db/0/0/114.130.39.254/4A_TB/Others Language Movie/A Bug's Life 1998 BRRip 720p [Dual-Audio][Eng-Hindi]~Vikram & Rahul, but did find <iframe> tag(s), you could try this url(s):
+https://www.mmnt.net/form.html
+2024-09-27 19:08:09.595 -04:00 [INF] [P05] Finished processing https://www.mmnt.net/db/0/0/114.130.39.254/4A_TB/Others Language Movie/A Bug's Life 1998 BRRip 720p [Dual-Audio][Eng-Hindi]~Vikram & Rahul/
+2024-09-27 19:08:09.605 -04:00 [INF] [P05] Begin processing https://www.mmnt.net/db/0/0/114.130.39.254/4A_TB/Others Language Movie/A Beautiful Mind (2001)/A Beautiful Mind (2001)
+2024-09-27 19:08:09.606 -04:00 [DBG] [P05] Start download 'https://www.mmnt.net/db/0/0/114.130.39.254/4A_TB/Others Language Movie/A Beautiful Mind (2001)/A Beautiful Mind (2001)'
+2024-09-27 19:08:09.606 -04:00 [DBG] [P08] Finish download [HTTP "OK"] 'https://www.mmnt.net/db/0/0/114.130.39.254/4A_TB/Others Language Movie/A Muse (2012) BluRay 720p [Ganool] - [Esub]', size: 3.17 kiB
+2024-09-27 19:08:09.606 -04:00 [INF] [P04] Begin processing https://www.mmnt.net/db/0/0/114.130.39.254/4A_TB/Others Language Movie/A Beautiful Mind (2001)/American Pie [Collection]
+2024-09-27 19:08:09.607 -04:00 [DBG] [P04] Start download 'https://www.mmnt.net/db/0/0/114.130.39.254/4A_TB/Others Language Movie/A Beautiful Mind (2001)/American Pie [Collection]'
+2024-09-27 19:08:09.611 -04:00 [WRN] No directories and files found on https://www.mmnt.net/db/0/0/114.130.39.254/4A_TB/Others Language Movie/A Muse (2012) BluRay 720p [Ganool] - [Esub], but did find <iframe> tag(s), you could try this url(s):
+https://www.mmnt.net/form.html
+2024-09-27 19:08:09.611 -04:00 [DBG] [P07] Finish download [HTTP "OK"] 'https://www.mmnt.net/db/0/0/114.130.39.254/4A_TB/Others Language Movie/A Moment to Remember [2004]', size: 3.46 kiB
+2024-09-27 19:08:09.612 -04:00 [INF] [P08] Finished processing https://www.mmnt.net/db/0/0/114.130.39.254/4A_TB/Others Language Movie/A Muse (2012) BluRay 720p [Ganool] - [Esub]/
+2024-09-27 19:08:09.618 -04:00 [WRN] No directories and files found on https://www.mmnt.net/db/0/0/114.130.39.254/4A_TB/Others Language Movie/A Moment to Remember [2004], but did find <iframe> tag(s), you could try this url(s):
+https://www.mmnt.net/form.html
+2024-09-27 19:08:09.618 -04:00 [INF] [P07] Finished processing https://www.mmnt.net/db/0/0/114.130.39.254/4A_TB/Others Language Movie/A Moment to Remember [2004]/
+2024-09-27 19:08:09.757 -04:00 [DBG] [P04] Finish download [HTTP "OK"] 'https://www.mmnt.net/db/0/0/114.130.39.254/4A_TB/Others Language Movie/A Beautiful Mind (2001)/American Pie [Collection]', size: 2.91 kiB
+2024-09-27 19:08:09.758 -04:00 [DBG] [P05] Finish download [HTTP "OK"] 'https://www.mmnt.net/db/0/0/114.130.39.254/4A_TB/Others Language Movie/A Beautiful Mind (2001)/A Beautiful Mind (2001)', size: 3.27 kiB
+2024-09-27 19:08:09.762 -04:00 [WRN] No directories and files found on https://www.mmnt.net/db/0/0/114.130.39.254/4A_TB/Others Language Movie/A Beautiful Mind (2001)/American Pie [Collection], but did find <iframe> tag(s), you could try this url(s):
+https://www.mmnt.net/form.html
+2024-09-27 19:08:09.762 -04:00 [INF] [P04] Finished processing https://www.mmnt.net/db/0/0/114.130.39.254/4A_TB/Others Language Movie/A Beautiful Mind (2001)/American Pie [Collection]/
+2024-09-27 19:08:09.764 -04:00 [WRN] No directories and files found on https://www.mmnt.net/db/0/0/114.130.39.254/4A_TB/Others Language Movie/A Beautiful Mind (2001)/A Beautiful Mind (2001), but did find <iframe> tag(s), you could try this url(s):
+https://www.mmnt.net/form.html
+2024-09-27 19:08:09.764 -04:00 [INF] [P05] Finished processing https://www.mmnt.net/db/0/0/114.130.39.254/4A_TB/Others Language Movie/A Beautiful Mind (2001)/A Beautiful Mind (2001)/
+2024-09-27 19:08:09.764 -04:00 [DBG] [P05] Finished
+2024-09-27 19:08:10.174 -04:00 [DBG] [P10] Finished
+2024-09-27 19:08:10.175 -04:00 [DBG] [P09] Finished
+2024-09-27 19:08:10.295 -04:00 [DBG] [P01] Finished
+2024-09-27 19:08:10.427 -04:00 [DBG] [P02] Finished
+2024-09-27 19:08:10.576 -04:00 [DBG] [P03] Finished
+2024-09-27 19:08:10.596 -04:00 [DBG] [P06] Finished
+2024-09-27 19:08:10.611 -04:00 [DBG] [P08] Finished
+2024-09-27 19:08:10.619 -04:00 [DBG] [P07] Finished
+2024-09-27 19:08:10.763 -04:00 [DBG] [P04] Finished
+2024-09-27 19:08:10.764 -04:00 [INF] Finshed indexing
+2024-09-27 19:08:11.173 -04:00 [DBG] [P09] Finished
+2024-09-27 19:08:11.175 -04:00 [DBG] [P08] Finished
+2024-09-27 19:08:11.175 -04:00 [DBG] [P07] Finished
+2024-09-27 19:08:11.175 -04:00 [DBG] [P06] Finished
+2024-09-27 19:08:11.175 -04:00 [DBG] [P05] Finished
+2024-09-27 19:08:11.175 -04:00 [DBG] [P04] Finished
+2024-09-27 19:08:11.175 -04:00 [DBG] [P03] Finished
+2024-09-27 19:08:11.175 -04:00 [DBG] [P01] Finished
+2024-09-27 19:08:11.176 -04:00 [DBG] [P10] Finished
+2024-09-27 19:08:11.180 -04:00 [DBG] [P02] Finished
+2024-09-27 19:08:11.206 -04:00 [INF] No URLs to save
+2024-09-27 19:08:11.206 -04:00 [WRN] Speedtest skipped because of general service or disabled through command line
+2024-09-27 19:08:11.207 -04:00 [INF] Logging sessions stats..
+2024-09-27 19:08:11.207 -04:00 [INF] Http status codes
+200: 11
+Total files: 0, Total estimated size: n/a
+Total directories: 11
+Total HTTP requests: 11, Total HTTP traffic: 46.2 kiB
+|**Url:** [https://www.mmnt.net/db/0/0/114.130.39...](https://www.mmnt.net/db/0/0/114.130.39.254/4A_TB/Others Language Movie/)|||
+|:-|-:|-:|
+|**Extension (Top 5)**|**Files**|**Size**|
+|**Dirs:** 11 **Ext:** 0|**Total:** 0|**Total:** n/a|
+|**Date (UTC):** 2024-09-27 23:08:06|**Time:** 00:00:04||
+
+^(Created by [KoalaBear84's OpenDirectory Indexer v3.1.0.1](https://github.com/KoalaBear84/OpenDirectoryDownloader/))
+
+2024-09-27 19:08:11.207 -04:00 [INF] Logged sessions stats
+2024-09-27 19:08:11.208 -04:00 [INF] Finished indexing!
+2024-09-27 19:08:11.208 -04:00 [INF] Exiting...
+rocessing http://bilbohiria.com/docs2/filmak/Musikafilmak/Neil Young - Don't Be Denied - 2008/
+2024-09-27 19:08:08.396 -04:00 [DBG] [P05] Start download 'http://bilbohiria.com/docs2/filmak/Musikafilmak/Neil Young - Don't Be Denied - 2008/'
+2024-09-27 19:08:08.396 -04:00 [INF] [P07] Begin processing http://bilbohiria.com/docs2/filmak/Musikafilmak/Shirin.Abbas.Kiarostami.2008.DVDRip.XViD/
+2024-09-27 19:08:08.397 -04:00 [DBG] [P07] Start download 'http://bilbohiria.com/docs2/filmak/Musikafilmak/Shirin.Abbas.Kiarostami.2008.DVDRip.XViD/'
+2024-09-27 19:08:08.399 -04:00 [INF] [P03] Begin processing http://bilbohiria.com/docs2/filmak/Musikafilmak/rockyhorror/
+2024-09-27 19:08:08.399 -04:00 [DBG] [P03] Start download 'http://bilbohiria.com/docs2/filmak/Musikafilmak/rockyhorror/'
+2024-09-27 19:08:08.402 -04:00 [INF] [P06] Begin processing http://bilbohiria.com/docs2/filmak/Musikafilmak/David Gilmour - Wider Horizons-BBC 2015-DVD5-PAL/EXTRAS/
+2024-09-27 19:08:08.402 -04:00 [DBG] [P06] Start download 'http://bilbohiria.com/docs2/filmak/Musikafilmak/David Gilmour - Wider Horizons-BBC 2015-DVD5-PAL/EXTRAS/'
+2024-09-27 19:08:08.473 -04:00 [DBG] [P04] Finish download [HTTP "OK"] 'http://bilbohiria.com/docs2/filmak/Musikafilmak/Heartworn Highways/', size: 602 B
+2024-09-27 19:08:08.477 -04:00 [INF] [P04] Finished processing http://bilbohiria.com/docs2/filmak/Musikafilmak/Heartworn Highways/
+2024-09-27 19:08:08.478 -04:00 [DBG] [P08] Finish download [HTTP "OK"] 'http://bilbohiria.com/docs2/filmak/Musikafilmak/Led Zeppelin The Song Remains The Same - Documentary 1976 Eng Subs 1080p %5bH246-mp4%5d/', size: 904 B
+2024-09-27 19:08:08.480 -04:00 [INF] [P08] Finished processing http://bilbohiria.com/docs2/filmak/Musikafilmak/Led Zeppelin The Song Remains The Same - Documentary 1976 Eng Subs 1080p %5bH246-mp4%5d/
+2024-09-27 19:08:08.489 -04:00 [INF] [P04] Begin processing http://bilbohiria.com/docs2/filmak/Musikafilmak/David Gilmour - Wider Horizons-BBC 2015-DVD5-PAL/VIDEO_TS/
+2024-09-27 19:08:08.489 -04:00 [DBG] [P04] Start download 'http://bilbohiria.com/docs2/filmak/Musikafilmak/David Gilmour - Wider Horizons-BBC 2015-DVD5-PAL/VIDEO_TS/'
+2024-09-27 19:08:08.492 -04:00 [DBG] [P02] Finish download [HTTP "OK"] 'http://bilbohiria.com/docs2/filmak/Musikafilmak/Marley (2012)/', size: 656 B
+2024-09-27 19:08:08.494 -04:00 [INF] [P02] Finished processing http://bilbohiria.com/docs2/filmak/Musikafilmak/Marley (2012)/
+2024-09-27 19:08:08.504 -04:00 [DBG] [P07] Finish download [HTTP "OK"] 'http://bilbohiria.com/docs2/filmak/Musikafilmak/Shirin.Abbas.Kiarostami.2008.DVDRip.XViD/', size: 722 B
+2024-09-27 19:08:08.507 -04:00 [INF] [P07] Finished processing http://bilbohiria.com/docs2/filmak/Musikafilmak/Shirin.Abbas.Kiarostami.2008.DVDRip.XViD/
+2024-09-27 19:08:08.506 -04:00 [DBG] [P05] Finish download [HTTP "OK"] 'http://bilbohiria.com/docs2/filmak/Musikafilmak/Neil Young - Don't Be Denied - 2008/', size: 536 B
+2024-09-27 19:08:08.514 -04:00 [INF] [P05] Finished processing http://bilbohiria.com/docs2/filmak/Musikafilmak/Neil Young - Don't Be Denied - 2008/
+2024-09-27 19:08:08.508 -04:00 [DBG] [P06] Finish download [HTTP "OK"] 'http://bilbohiria.com/docs2/filmak/Musikafilmak/David Gilmour - Wider Horizons-BBC 2015-DVD5-PAL/EXTRAS/', size: 827 B
+2024-09-27 19:08:08.505 -04:00 [DBG] [P03] Finish download [HTTP "OK"] 'http://bilbohiria.com/docs2/filmak/Musikafilmak/rockyhorror/', size: 772 B
+2024-09-27 19:08:08.533 -04:00 [INF] [P03] Finished processing http://bilbohiria.com/docs2/filmak/Musikafilmak/rockyhorror/
+2024-09-27 19:08:08.531 -04:00 [INF] [P06] Finished processing http://bilbohiria.com/docs2/filmak/Musikafilmak/David Gilmour - Wider Horizons-BBC 2015-DVD5-PAL/EXTRAS/
+2024-09-27 19:08:08.546 -04:00 [INF] [P06] Begin processing http://bilbohiria.com/docs2/filmak/Musikafilmak/Neil Young - Don't Be Denied - 2008/VIDEO_TS/
+2024-09-27 19:08:08.546 -04:00 [DBG] [P06] Start download 'http://bilbohiria.com/docs2/filmak/Musikafilmak/Neil Young - Don't Be Denied - 2008/VIDEO_TS/'
+2024-09-27 19:08:08.588 -04:00 [DBG] [P04] Finish download [HTTP "OK"] 'http://bilbohiria.com/docs2/filmak/Musikafilmak/David Gilmour - Wider Horizons-BBC 2015-DVD5-PAL/VIDEO_TS/', size: 955 B
+2024-09-27 19:08:08.591 -04:00 [INF] [P04] Finished processing http://bilbohiria.com/docs2/filmak/Musikafilmak/David Gilmour - Wider Horizons-BBC 2015-DVD5-PAL/VIDEO_TS/
+2024-09-27 19:08:08.647 -04:00 [DBG] [P06] Finish download [HTTP "OK"] 'http://bilbohiria.com/docs2/filmak/Musikafilmak/Neil Young - Don't Be Denied - 2008/VIDEO_TS/', size: 920 B
+2024-09-27 19:08:08.650 -04:00 [INF] [P06] Finished processing http://bilbohiria.com/docs2/filmak/Musikafilmak/Neil Young - Don't Be Denied - 2008/VIDEO_TS/
+2024-09-27 19:08:08.651 -04:00 [DBG] [P06] Finished
+2024-09-27 19:08:09.052 -04:00 [DBG] [P01] Finished
+2024-09-27 19:08:09.150 -04:00 [DBG] [P10] Finished
+2024-09-27 19:08:09.242 -04:00 [DBG] [P09] Finished
+2024-09-27 19:08:09.492 -04:00 [DBG] [P08] Finished
+2024-09-27 19:08:09.498 -04:00 [DBG] [P02] Finished
+2024-09-27 19:08:09.511 -04:00 [DBG] [P07] Finished
+2024-09-27 19:08:09.547 -04:00 [DBG] [P05] Finished
+2024-09-27 19:08:09.549 -04:00 [DBG] [P03] Finished
+2024-09-27 19:08:09.591 -04:00 [DBG] [P04] Finished
+2024-09-27 19:08:09.591 -04:00 [INF] Finshed indexing
+2024-09-27 19:08:10.034 -04:00 [DBG] [P01] Finished
+2024-09-27 19:08:10.038 -04:00 [DBG] [P10] Finished
+2024-09-27 19:08:10.038 -04:00 [DBG] [P09] Finished
+2024-09-27 19:08:10.038 -04:00 [DBG] [P08] Finished
+2024-09-27 19:08:10.038 -04:00 [DBG] [P07] Finished
+2024-09-27 19:08:10.038 -04:00 [DBG] [P06] Finished
+2024-09-27 19:08:10.038 -04:00 [DBG] [P05] Finished
+2024-09-27 19:08:10.038 -04:00 [DBG] [P04] Finished
+2024-09-27 19:08:10.038 -04:00 [DBG] [P03] Finished
+2024-09-27 19:08:10.038 -04:00 [DBG] [P02] Finished
+2024-09-27 19:08:10.087 -04:00 [INF] Saving URL list to file..
+2024-09-27 19:08:10.127 -04:00 [INF] Saved URL list to file: /home/y0usef/Desktop/Programming/freelance/upwork/clients/greg-s/membership-auth-download-server/Scans/http:__bilbohiria.com_docs2_filmak_.txt
+2024-09-27 19:08:10.128 -04:00 [WRN] Speedtest skipped because of general service or disabled through command line
+2024-09-27 19:08:10.128 -04:00 [INF] Logging sessions stats..
+2024-09-27 19:08:10.129 -04:00 [INF] Http status codes
+200: 29
+Total files: 146, Total estimated size: n/a
+Total directories: 29
+Total HTTP requests: 29, Total HTTP traffic: 28.47 kiB
+|**Url:** [http://bilbohiria.com/docs2/filmak/](http://bilbohiria.com/docs2/filmak/)|||
+|:-|-:|-:|
+|**Extension (Top 5)**|**Files**|**Size**|
+|.mp4|43|n/a|
+|.srt|28|n/a|
+|.avi|24|n/a|
+|.mkv|14|n/a|
+|.vob|12|n/a|
+|**Dirs:** 29 **Ext:** 17|**Total:** 146|**Total:** n/a|
+|**Date (UTC):** 2024-09-27 23:08:06|**Time:** 00:00:03||
+
+^(Created by [KoalaBear84's OpenDirectory Indexer v3.1.0.1](https://github.com/KoalaBear84/OpenDirectoryDownloader/))
+
+2024-09-27 19:08:10.129 -04:00 [INF] Logged sessions stats
+2024-09-27 19:08:10.129 -04:00 [INF] Finished indexing!
+2024-09-27 19:08:10.130 -04:00 [INF] Exiting...

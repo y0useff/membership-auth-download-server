@@ -500,7 +500,8 @@ app.get("/search", async (req, res) => {
         let results = []
         for (element of response) {
             if (Array.isArray(element)) {
-                results.push(element[element.length-1])
+                console.log(element[element.length-1].replace(/\\/g, ""))
+                results.push(element[element.length-1].replace(/\\/g, ""))
             }
         }
 
@@ -508,7 +509,7 @@ app.get("/search", async (req, res) => {
         // for (let result of response.documents) {
         //     results.push(result.value.url)
         // }
-        console.log(results)
+        console.log(results.length)
         await res.render("results", {
             response: results,
             email: email

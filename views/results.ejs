@@ -22,7 +22,8 @@
         <% let i = 0 %>
         <% response.forEach((result) => { %>
 		    
-			<% result = decodeURIComponent(result) %>    
+			<% result = decodeURIComponent(result) %> 
+
 		    	<tr id="results">
                                 <td>
                                     <a id="link-<%=i%>" href="http://<%= result %>"> <%= result %> </a>
