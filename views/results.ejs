@@ -4,10 +4,10 @@
     <body>
         <center>
 
-            <form action="/search?">
+            <form action="/download?">
                 <label> Search our Movie & TV Show Database</label>
                 <input type="hidden" name="email" value="<%=email%>" />
-                <input type="text" name="title" id="search"/> <button>Search</button>
+                <input type="text" name="title" id="download"/> <button>Search</button>
             </form>
             <hr>
             <table>
@@ -24,9 +24,14 @@
 		    
 			<% result = decodeURIComponent(result) %> 
 
-		    	<tr id="results">
+            <% if(result.startsWith("http://") || result.startsWith("https://")){ %>
+                <% {result = result} %>
+            <% } else{ %>  
+                <% result = "http://" + result %>
+             <% } %>
+		    	<tr id="results">   
                                 <td>
-                                    <a id="link-<%=i%>" href="http://<%= result %>"> <%= result %> </a>
+                                    <a id="link-<%=i%>" href="<%= result %>"> <%= result %> </a>
                                 </td>
                                 <td>
                                     <button id="button-<%=i%>" onClick="validateLink(`<%=i%>`)"> Report Not Working</button>

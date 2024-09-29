@@ -494,14 +494,13 @@ app.get("/search", async (req, res) => {
         }
         console.log(title)
         let response;
-
-        response = await client.sendCommand(["FT.SEARCH", "idx:media", `%${title}%`, "LIMIT", "0", "10000"])
-
+        if (title.includes(" ")) response = await client.sendCommand(["FT.SEARCH", "idx:media", `${title}`, "LIMIT", "0", "10000"])
+        else response = await client.sendCommand(["FT.SEARCH", "idx:media", `%${title}%`, "LIMIT", "0", "10000"])
         let results = []
         for (element of response) {
             if (Array.isArray(element)) {
-                console.log(element[element.length-1].replace(/\\/g, ""))
-                results.push(element[element.length-1].replace(/\\/g, ""))
+                console.log(element[element.length-3].replace(/\\/g, ""))
+                results.push(element[element.length-3].replace(/\\/g, ""))
             }
         }
 
@@ -556,6 +555,7 @@ app.get("/download", async (req, res) => {
 //@OVERRIDE
 
 const launchPageWithProxy = async (proxy=`rp.proxyscrape.com:6060`) => {
+    proxy = undefined //erase when not debugging
     const pathToExtension = require('path').join(__dirname, '2captcha-solver');
     puppeteer.use(StealthPlugin())
 
@@ -618,10 +618,10 @@ const launchPageWithProxy = async (proxy=`rp.proxyscrape.com:6060`) => {
 app.get("/addFile", async (req, res) => {
     console.log("complete")
     const {title} = req.query
-    exec(`cat ./Scans/* > "./Results/${title}.txt"`, async (error, stdout, stderr) => {
+    exec(`cat ./Scans/* > "./Results/${title}.txt"`, {maxBuffer: 1024 * 100000000},async (error, stdout, stderr) => {
         const allFileContents = fs.readFileSync(`./Results/${title}.txt`, 'utf-8');
         await addFileToDb(allFileContents);
-        if (DEBUG == false) exec(`rm ./Results/* && rm ./Scans/* && rm ./SearchResults/* && rm ./*.log`)
+        if (DEBUG == false) exec(`rm ./Results/* && rm ./Scans/* && rm ./SearchResults/* && rm ./*.log`, {maxBuffer: 1024 * 100000000})
             res.send(200)
     })
 
@@ -663,7 +663,7 @@ const scrape =  async(req, res) => {
         uniq = [...new Set(final_json)];
 
         await fs.writeFileSync(`./SearchResults/${title}.json`, JSON.stringify(uniq))
-        exec(`java -jar ParallelODD.jar "./SearchResults/${title}.json" "OpenDirectoryDownloader/OpenDirectoryDownloader"`, async (error, stdout, stderr) => {
+        exec(`java -jar ParallelODD.jar "./SearchResults/${title}.json" "OpenDirectoryDownloader/OpenDirectoryDownloader"`, {maxBuffer: 1024 * 100000000}, async (error, stdout, stderr) => {
             if (error) {
                 console.log(`error: ${error.message}`);
                 return;
